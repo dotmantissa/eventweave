@@ -9,6 +9,8 @@ class EventRegistry(gl.Contract):
     source_index: TreeMap[str, str]
     quarantines: TreeMap[str, bool]
     count: u32
+    current_sources: TreeMap[str, str]
+    source_history: DynArray[str]
 
     def __init__(self):
         self.owner = gl.message.sender_address
@@ -110,6 +112,29 @@ class EventRegistry(gl.Contract):
         return key
 
     @gl.public.write
+    def attest_source_revision(self, event_id: str, source_json: str, previous_revision: str) -> None:
+        original = self.get_identity(event_id)
+        source = source_record(parse(source_json))
+        authority = self.get_authority(source['authority_id'])
+        if str(gl.message.sender_address).lower() != original['owner'] or authority['principal'] != original['owner']:
+            fail('Only original attesting principal may revise its public source')
+        if original['quarantined'] or self.quarantines.get(source['authority_id'], False):
+            fail('Authority is quarantined')
+        if source['record_id'] != original['source']['record_id'] or source['scope'] != original['source']['scope'] or source['scope'] != authority['scope'] or source['channel'] != authority['channel'] or not source['url'].startswith(authority['url_prefix']):
+            fail('Successor source must retain record, scope and configured authority channel')
+        if source == original['source']:
+            return
+        if original['source']['revision'] != previous_revision or source['revision'] == previous_revision:
+            fail('Stale or identical source revision')
+        key = source['record_id'] + ':' + source['revision']
+        if key in self.source_index:
+            fail('Conflicting source revision reuse')
+        self.source_index[key] = event_id
+        self.current_sources[event_id] = encoded(source)
+        append(self.source_history, {'event_id': event_id, 'previous_source': original['source'], 'source': source, 'owner': original['owner']})
+        append(self.history, {'operation': 'source_revision', 'event_id': event_id, 'revision': source['revision'], 'previous_revision': previous_revision})
+
+    @gl.public.write
     def quarantine_authority(self, authority_id: str, reason: str) -> None:
         if gl.message.sender_address != self.owner:
             fail('Only registry owner may quarantine authority')
@@ -137,6 +162,9 @@ class EventRegistry(gl.Contract):
         if event_id not in self.events:
             fail('Unknown event')
         value = json.loads(self.events[event_id])
+        value['original_source'] = value['source']
+        if event_id in self.current_sources:
+            value['source'] = json.loads(self.current_sources[event_id])
         value['quarantined'] = self.quarantines.get(value['source']['authority_id'], False)
         return value
 
@@ -147,3 +175,7 @@ class EventRegistry(gl.Contract):
     @gl.public.view
     def get_history(self, offset: int, limit: int) -> list:
         return page(self.history, offset, limit)
+
+    @gl.public.view
+    def get_source_history(self, offset: int, limit: int) -> list:
+        return page(self.source_history, offset, limit)

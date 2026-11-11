@@ -26,3 +26,16 @@ def test_deadline_and_retries(system,event_factory,request_factory):
     successor=request_factory('a','b',generation=2);third=request_factory('a','b',generation=3)
     with pytest.raises(Exception,match='Three requests'):request_factory('a','b',generation=4)
     successor=third;c.vms[system.court]._datetime='2026-11-13T10:00:00Z';c.call(system.court,'assess',successor['envelope']['request_id']);assert c.call(system.court,'get_result',successor['envelope']['request_id'])['status']=='timeout'
+
+@pytest.mark.synthetic
+def test_expired_assessment_and_committed_source_outage_are_unresolved(system,event_factory,request_factory):
+    event_factory('a');event_factory('b');c=system.chain
+    r=request_factory('a','b');c.vms[system.court]._datetime='2026-11-13T10:00:00Z'
+    c.call(system.court,'assess',r['envelope']['request_id']);c.finalize()
+    result=c.call(system.directory,'get_relation',r['envelope']['request_id']);assert result['status']=='timeout';assert result['decision']=='UNKNOWN';assert not result['coverage']
+
+@pytest.mark.synthetic
+def test_full_packet_budget_is_rejected_before_model_work(system,event_factory,request_factory):
+    event_factory('a',body=b'a'*49152);event_factory('b',body=b'b'*49152)
+    with pytest.raises(Exception,match='Complete packet exceeds context budget'):request_factory('a','b')
+    assert not system.chain.vms[system.court]._captured_validators
