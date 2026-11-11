@@ -39,3 +39,11 @@ def test_full_packet_budget_is_rejected_before_model_work(system,event_factory,r
     event_factory('a',body=b'a'*49152);event_factory('b',body=b'b'*49152)
     with pytest.raises(Exception,match='Complete packet exceeds context budget'):request_factory('a','b')
     assert not system.chain.vms[system.court]._captured_validators
+
+@pytest.mark.synthetic
+def test_unavailable_source_never_establishes_a_fact(system,event_factory,request_factory):
+    event_factory('a');event_factory('b');r=request_factory('a','b');c=system.chain
+    c.vms[system.court]._web_mocks.clear()
+    c.call(system.court,'assess',r['envelope']['request_id']);c.finalize()
+    result=c.call(system.directory,'get_relation',r['envelope']['request_id'])
+    assert result['decision']=='UNKNOWN';assert result['controlling_rules']==['SOURCE_UNAVAILABLE'];assert result['unresolved'];assert not result['coverage']

@@ -1,1 +1,15 @@
-{"name":"@eventweave/client","private":true,"version":"0.1.0","type":"module","exports":"./src/index.ts"}
+{
+  "name": "@eventweave/client",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "types": "./src/index.ts",
+    "default": "./dist/index.js"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8",
+    "viem": "2.57.18",
+    "@eventweave/protocol": "*"
+  }
+}

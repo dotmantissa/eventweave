@@ -16,3 +16,6 @@ coverage/
 .impeccable/questions/
 .impeccable/mocks/
 *.tsbuildinfo
+
+.tools/
+artifacts/
