@@ -110,7 +110,8 @@ def test_unrelated_recovery_and_unacknowledged_invalidation_are_rejected(system,
     assert c.call(s.incident, 'get_stats')['accepted_count'] == 2
 
 
-def test_recovery_restores_all_three_records_and_consumers(system, event_factory, request_factory):
+@pytest.mark.parametrize('ac_decision,expected_count', [('SAME', 2), ('DISTINCT', 3)])
+def test_recovery_restores_all_three_records_and_consumers(system, event_factory, request_factory, ac_decision, expected_count):
     s = system; c = s.chain
     for r in 'abc': event_factory(r)
     reserve(s, 'abc'); reserve(s, 'abc', s.release, RELEASE_OWNER)
@@ -118,9 +119,15 @@ def test_recovery_restores_all_three_records_and_consumers(system, event_factory
     finalize_merge(s, [ab], 'a','b','ab'); scope = finalize_merge(s,[ab,ac,bc],'a','c','abc'); publish(s,ab)
     other = certify(s, request_factory, 'a','b', consumer=s.release); publish(s,other)
     correction = certify(s, request_factory, 'a','b','DISTINCT',generation=2)
-    c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id']); c.finalize()
+    with pytest.raises(Exception, match='complete current partition proof'):
+        c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'])
+    assert c.call(s.incident,'get_stats')['accepted_count'] == 0
+    updated_ac = certify(s, request_factory, 'a','c',ac_decision,generation=2)
+    updated_bc = certify(s, request_factory, 'b','c','DISTINCT',generation=2)
+    proof = encode([updated_ac['envelope']['request_id'], updated_bc['envelope']['request_id']])
+    c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'],proof); c.finalize()
     for consumer in (s.incident,s.release):
-        assert c.call(consumer,'get_stats')['accepted_count'] == 3
+        assert c.call(consumer,'get_stats')['accepted_count'] == expected_count
         assert [c.call(consumer,'get_reference','ref.'+r)['status'] for r in 'abc'] == ['finalized']*3
     c.call(s.court,'supersede_relation',ab['envelope']['request_id'],correction['envelope']['request_id'],'Complete correction of the pair'); c.finalize()
     assert c.call(s.directory,'get_identity','a',scope)['status'] == 'finalized'
@@ -224,3 +231,18 @@ def test_recovery_restoration_and_its_acknowledgement_can_be_replayed(system,eve
     c.call(s.directory,'retry_notice',notice_id); c.finalize()
     assert c.call(s.directory,'get_consumer_ack',notice_id)['status']=='finalized'
     assert c.call(s.incident,'get_stats')['accepted_count']==2
+
+
+def test_recovery_rejects_a_contradictory_partition(system,event_factory,request_factory):
+    s=system; c=s.chain
+    for r in 'abc': event_factory(r)
+    reserve(s,'abc')
+    ab,ac,bc=[certify(s,request_factory,a,b) for a,b in [('a','b'),('a','c'),('b','c')]]
+    finalize_merge(s,[ab],'a','b','ab');scope=finalize_merge(s,[ab,ac,bc],'a','c','abc');publish(s,ab)
+    correction=certify(s,request_factory,'a','b','DISTINCT',generation=2)
+    ac=certify(s,request_factory,'a','c','SAME',generation=2)
+    bc=certify(s,request_factory,'b','c','SAME',generation=2)
+    with pytest.raises(Exception,match='contradicts'):
+        c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'],encode([ac['envelope']['request_id'],bc['envelope']['request_id']]))
+    assert c.call(s.incident,'get_stats')['accepted_count']==0
+    assert c.call(s.directory,'get_identity','c',scope)['status']=='quarantined'

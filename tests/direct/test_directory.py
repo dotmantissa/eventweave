@@ -77,8 +77,12 @@ def test_old_same_edges_cannot_restore_a_corrected_cluster(system,event_factory,
     proof,_=merge(system,[ab],'a','b','original.ab');c=system.chain;c.call(system.directory,'finalize_alias',proof['operation_id'])
     proof,_=merge(system,relations,'a','c','original.abc');c.call(system.directory,'finalize_alias',proof['operation_id'])
     correction=certify(system,request_factory,'a','b','DISTINCT',generation=2)
-    c.call(system.directory,'recover_component',proof['scope'],'a',correction['envelope']['request_id'])
+    with pytest.raises(Exception,match='complete current partition proof'):
+        c.call(system.directory,'recover_component',proof['scope'],'a',correction['envelope']['request_id'])
+    ac=certify(system,request_factory,'a','c','DISTINCT',generation=2)
+    bc=certify(system,request_factory,'b','c','DISTINCT',generation=2)
+    c.call(system.directory,'recover_component',proof['scope'],'a',correction['envelope']['request_id'],encode([ac['envelope']['request_id'],bc['envelope']['request_id']]))
     ac=next(r for r in relations if r['left']=='a' and r['right']=='c')
-    _,result=merge(system,[ac],'a','c','obsolete.ac');assert result['status']=='unresolved'
+    _,result=merge(system,[ac],'a','c','obsolete.ac');assert result['status']=='refused'
     c.call(system.directory,'retry_invalidation',ac['envelope']['request_id']);c.finalize()
     assert c.call(system.directory,'get_identity','a',proof['scope'])['members']==['a']
