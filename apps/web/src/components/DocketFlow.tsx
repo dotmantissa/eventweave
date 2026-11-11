@@ -259,6 +259,7 @@ export function DocketFlow({ requestId }: { requestId: string }) {
                       disabled={
                         op.busy ||
                         (result.decision === "SAME" &&
+                          !docket.consumer_ack.request_id &&
                           proposal?.status !== "finalized")
                       }
                       onClick={() => act("publish_alias", [id], "directory")}
