@@ -1,0 +1,253 @@
+{
+  "classification": "authentic public source verification, not real adoption",
+  "source_commit": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+  "authority": {
+    "authority_id": "nodejs.public",
+    "principal": "0xbc1399c55538ec034d4da550c03c34ae0c357f53",
+    "channel": "official.website",
+    "url_prefix": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/",
+    "evidence_url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/README.md",
+    "evidence_hash": "682b764bf252f0ace8429f7538ff3787ab481d4eeac2192071517b11b3862fb5",
+    "evidence_bytes": 6453,
+    "scope": "public.occurrence",
+    "revision": 1
+  },
+  "descriptors": {
+    "nodejs.notice.jan2025": {
+      "event_id": "nodejs.notice.jan2025",
+      "schema_id": "occurrence.v1",
+      "schema_revision": 1,
+      "title": "Node.js January 2025 security release notice",
+      "issuer": "Node.js",
+      "place": "Node.js ecosystem",
+      "interval_start": "2025-01-21T03:00:00.000Z",
+      "interval_end": "2025-01-21T03:00:00.000Z",
+      "occurrence_type": "operational_notice",
+      "official_reference": "january-2025-security-releases",
+      "source": {
+        "record_id": "nodejs.notice.jan2025",
+        "authority_id": "nodejs.public:1",
+        "channel": "official.website",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
+        "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a",
+        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "scope": "public.occurrence",
+        "byte_length": 4921,
+        "spans": [
+          {
+            "span_id": "nodejs.notice.jan2025.issuer",
+            "attribute": "issuer",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.place",
+            "attribute": "place",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.interval",
+            "attribute": "interval",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.occurrence_type",
+            "attribute": "occurrence_type",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.official_reference",
+            "attribute": "official_reference",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          }
+        ]
+      }
+    },
+    "nodejs.notice.jan2025.amended": {
+      "event_id": "nodejs.notice.jan2025.amended",
+      "schema_id": "occurrence.v1",
+      "schema_revision": 1,
+      "title": "January security update for Node.js",
+      "issuer": "Node.js",
+      "place": "Node.js ecosystem",
+      "interval_start": "2025-01-21T03:00:00.000Z",
+      "interval_end": "2025-01-21T03:00:00.000Z",
+      "occurrence_type": "operational_notice",
+      "official_reference": "january-2025-security-releases",
+      "source": {
+        "record_id": "nodejs.notice.jan2025.amended",
+        "authority_id": "nodejs.public:1",
+        "channel": "official.website",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
+        "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a",
+        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "scope": "public.occurrence",
+        "byte_length": 4921,
+        "spans": [
+          {
+            "span_id": "nodejs.notice.jan2025.amended.issuer",
+            "attribute": "issuer",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.amended.place",
+            "attribute": "place",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.amended.interval",
+            "attribute": "interval",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.amended.occurrence_type",
+            "attribute": "occurrence_type",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          },
+          {
+            "span_id": "nodejs.notice.jan2025.amended.official_reference",
+            "attribute": "official_reference",
+            "start": 0,
+            "end": 4921,
+            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+          }
+        ]
+      }
+    },
+    "nodejs.release.22.13.1": {
+      "event_id": "nodejs.release.22.13.1",
+      "schema_id": "occurrence.v1",
+      "schema_revision": 1,
+      "title": "Node.js 22.13.1",
+      "issuer": "Node.js",
+      "place": "Node.js ecosystem",
+      "interval_start": "2025-01-21T17:05:48.839Z",
+      "interval_end": "2025-01-21T17:05:48.839Z",
+      "occurrence_type": "release",
+      "official_reference": "v22.13.1",
+      "source": {
+        "record_id": "nodejs.release.22.13.1",
+        "authority_id": "nodejs.public:1",
+        "channel": "official.website",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/release/v22.13.1.md",
+        "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca",
+        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "scope": "public.occurrence",
+        "byte_length": 7619,
+        "spans": [
+          {
+            "span_id": "nodejs.release.22.13.1.issuer",
+            "attribute": "issuer",
+            "start": 0,
+            "end": 7619,
+            "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca"
+          },
+          {
+            "span_id": "nodejs.release.22.13.1.place",
+            "attribute": "place",
+            "start": 0,
+            "end": 7619,
+            "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca"
+          },
+          {
+            "span_id": "nodejs.release.22.13.1.interval",
+            "attribute": "interval",
+            "start": 0,
+            "end": 7619,
+            "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca"
+          },
+          {
+            "span_id": "nodejs.release.22.13.1.occurrence_type",
+            "attribute": "occurrence_type",
+            "start": 0,
+            "end": 7619,
+            "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca"
+          },
+          {
+            "span_id": "nodejs.release.22.13.1.official_reference",
+            "attribute": "official_reference",
+            "start": 0,
+            "end": 7619,
+            "raw_hash": "8636b6d9c981592854076e0694133e164c837f34b9dc54e2386ab4f686b20fca"
+          }
+        ]
+      }
+    },
+    "nodejs.release.22.11.0": {
+      "event_id": "nodejs.release.22.11.0",
+      "schema_id": "occurrence.v1",
+      "schema_revision": 1,
+      "title": "Node.js 22.11.0",
+      "issuer": "Node.js",
+      "place": "Node.js ecosystem",
+      "interval_start": "2024-10-29T14:28:44.535Z",
+      "interval_end": "2024-10-29T14:28:44.535Z",
+      "occurrence_type": "release",
+      "official_reference": "v22.11.0",
+      "source": {
+        "record_id": "nodejs.release.22.11.0",
+        "authority_id": "nodejs.public:1",
+        "channel": "official.website",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/release/v22.11.0.md",
+        "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5",
+        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "scope": "public.occurrence",
+        "byte_length": 7455,
+        "spans": [
+          {
+            "span_id": "nodejs.release.22.11.0.issuer",
+            "attribute": "issuer",
+            "start": 0,
+            "end": 7455,
+            "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5"
+          },
+          {
+            "span_id": "nodejs.release.22.11.0.place",
+            "attribute": "place",
+            "start": 0,
+            "end": 7455,
+            "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5"
+          },
+          {
+            "span_id": "nodejs.release.22.11.0.interval",
+            "attribute": "interval",
+            "start": 0,
+            "end": 7455,
+            "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5"
+          },
+          {
+            "span_id": "nodejs.release.22.11.0.occurrence_type",
+            "attribute": "occurrence_type",
+            "start": 0,
+            "end": 7455,
+            "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5"
+          },
+          {
+            "span_id": "nodejs.release.22.11.0.official_reference",
+            "attribute": "official_reference",
+            "start": 0,
+            "end": 7455,
+            "raw_hash": "388a292ed6ee437debd7cea13fb1974be6e2bb5d4e647e06f90e181e3e3bb3b5"
+          }
+        ]
+      }
+    }
+  }
+}

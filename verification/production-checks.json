@@ -1,0 +1,96 @@
+{
+  "url": "https://eventweave.vercel.app",
+  "checks": [
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/config",
+      "method": "GET",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8",
+      "ready": true,
+      "revision": 3
+    },
+    {
+      "path": "/api/events",
+      "method": "GET",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8",
+      "records": 4
+    },
+    {
+      "path": "/api/applications",
+      "method": "GET",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8",
+      "consumers": [
+        {
+          "name": "Incident History",
+          "address": "0x6E978d1b840A5BB114C975AA3072aE05a958d3BE",
+          "owner": "0x27bf060c65e14796e9b079ac0c84db78d8318cb3",
+          "stats": {
+            "accepted_count": 1,
+            "capacity": 1000,
+            "held_count": 2,
+            "references": 2
+          }
+        },
+        {
+          "name": "Release Evidence",
+          "address": "0xBD78a6A5e23657523851F93d63A83775351585BF",
+          "owner": "0xddf754ef6d9c7e7cd5e61deed309045d52465076",
+          "stats": {
+            "accepted_count": 1,
+            "capacity": 1000,
+            "held_count": 5,
+            "references": 5
+          }
+        }
+      ]
+    },
+    {
+      "path": "/api/operations",
+      "method": "GET",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/sources/commit",
+      "method": "POST",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/api/reconcile",
+      "method": "GET",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "contentType": "application/json; charset=utf-8"
+    },
+    {
+      "path": "/workspace",
+      "method": "GET",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ]
+}

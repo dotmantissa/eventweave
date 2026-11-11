@@ -1,0 +1,22 @@
+
+ RUN  v4.1.12 /home/dotmantissa/GenLayer/eventweave
+
+{"level":30,"time":1794407441874,"pid":12280,"hostname":"mceesquare","reqId":"req-1","req":{"method":"GET","url":"/api/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441890,"pid":12280,"hostname":"mceesquare","reqId":"req-1","res":{"statusCode":200},"responseTime":13.25709999999981,"msg":"request completed"}
+{"level":30,"time":1794407441896,"pid":12280,"hostname":"mceesquare","reqId":"req-2","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441902,"pid":12280,"hostname":"mceesquare","reqId":"req-2","res":{"statusCode":401},"responseTime":6.108700000000226,"msg":"request completed"}
+{"level":30,"time":1794407441904,"pid":12280,"hostname":"mceesquare","reqId":"req-3","req":{"method":"POST","url":"/api/comparisons/prepare","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441911,"pid":12280,"hostname":"mceesquare","reqId":"req-3","res":{"statusCode":401},"responseTime":7.042199999999866,"msg":"request completed"}
+{"level":30,"time":1794407441913,"pid":12280,"hostname":"mceesquare","reqId":"req-4","req":{"method":"POST","url":"/api/challenges","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441915,"pid":12280,"hostname":"mceesquare","reqId":"req-4","res":{"statusCode":401},"responseTime":2.4506999999998698,"msg":"request completed"}
+{"level":30,"time":1794407441918,"pid":12280,"hostname":"mceesquare","reqId":"req-5","req":{"method":"GET","url":"/api/dockets/invalid%20id","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441923,"pid":12280,"hostname":"mceesquare","reqId":"req-5","res":{"statusCode":400},"responseTime":4.2851989999999205,"msg":"request completed"}
+{"level":30,"time":1794407441926,"pid":12280,"hostname":"mceesquare","reqId":"req-6","req":{"method":"GET","url":"/api/reconcile","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441928,"pid":12280,"hostname":"mceesquare","reqId":"req-6","res":{"statusCode":401},"responseTime":2.3378999999999905,"msg":"request completed"}
+{"level":30,"time":1794407441931,"pid":12280,"hostname":"mceesquare","reqId":"req-7","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794407441932,"pid":12280,"hostname":"mceesquare","reqId":"req-7","res":{"statusCode":413},"responseTime":1.7714999999998327,"msg":"request completed"}
+
+ Test Files  2 passed (2)
+      Tests  27 passed (27)
+   Start at  15:30:38
+   Duration  3.55s (transform 586ms, setup 0ms, import 4.95s, tests 476ms, environment 1ms)

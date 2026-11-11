@@ -1,0 +1,6 @@
+
+> eventweave@0.1.0 format:check
+> prettier --check apps packages api scripts/*.ts scripts/*.mjs tests/*.ts *.json *.js *.yaml
+
+Checking formatting...
+All matched files use Prettier code style!

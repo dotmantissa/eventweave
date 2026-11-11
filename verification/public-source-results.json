@@ -1,0 +1,185 @@
+{
+  "notice.renamed.incident": {
+    "common_cause": "UNKNOWN",
+    "consequence_digest": "59c15976aa0b92689bbde9ec6dabc7287cf3651960ef6f5ab25e9afc128f08d0",
+    "consumer_address": "0x6e978d1b840a5bb114c975aa3072ae05a958d3be",
+    "controlling_rules": [
+      "ALL_ATTRIBUTES",
+      "NONE"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-13T23:59:59Z",
+    "decision": "SAME",
+    "generation": 1,
+    "left": "nodejs.notice.jan2025",
+    "owner": "0xbc1399c55538ec034d4da550c03c34ae0c357f53",
+    "parties": [
+      "0xbc1399c55538ec034d4da550c03c34ae0c357f53"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v3.notice.renamed.incident",
+    "right": "nodejs.notice.jan2025.amended",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "eb24eede85c04336c6cedb11af9c284ad9b16c1e9b00f31d3f9e731261603e25",
+    "status": "accepted",
+    "subject_digest": "aec19445c17201ee5910d892ac19b5fcaddcd73f104e109e0f9d9e234ac5d483",
+    "subject_id": "pair:a69d6ae734f5be977a63603e80698046bb4c08b24edebd6c5517c521117c613a",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "SAME",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "SAME",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.notice.jan2025.amended.interval",
+        "nodejs.notice.jan2025.interval"
+      ],
+      "issuer": [
+        "nodejs.notice.jan2025.amended.issuer",
+        "nodejs.notice.jan2025.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.notice.jan2025.amended.occurrence_type",
+        "nodejs.notice.jan2025.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.notice.jan2025.amended.official_reference",
+        "nodejs.notice.jan2025.official_reference"
+      ],
+      "place": [
+        "nodejs.notice.jan2025.amended.place",
+        "nodejs.notice.jan2025.place"
+      ]
+    },
+    "directory_ack": {
+      "generation": 1,
+      "request_id": "public.v3.notice.renamed.incident",
+      "status": "finalized"
+    },
+    "consumer_ack": {
+      "fingerprint": "d6c038066cefdfc69fce656918c186dea094e27ed2fb7f85d5eb063a108b7add",
+      "generation": 1,
+      "operation_id": "delivery:public.v3.notice.renamed.incident",
+      "references": [
+        "incident.nodejs.notice.jan2025",
+        "incident.nodejs.notice.jan2025.amended"
+      ],
+      "request_id": "public.v3.notice.renamed.incident",
+      "status": "finalized"
+    }
+  },
+  "notice.renamed.release": {
+    "common_cause": "SAME",
+    "consequence_digest": "34f83aa1dd51267215aafafc524110e1c49b56c553033a4864622fda03db15a3",
+    "consumer_address": "0xbd78a6a5e23657523851f93d63a83775351585bf",
+    "controlling_rules": [
+      "ALL_ATTRIBUTES",
+      "NONE"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-13T23:59:59Z",
+    "decision": "SAME",
+    "generation": 2,
+    "left": "nodejs.notice.jan2025",
+    "owner": "0xbc1399c55538ec034d4da550c03c34ae0c357f53",
+    "parties": [
+      "0xbc1399c55538ec034d4da550c03c34ae0c357f53"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v3.notice.renamed.release",
+    "right": "nodejs.notice.jan2025.amended",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "eb24eede85c04336c6cedb11af9c284ad9b16c1e9b00f31d3f9e731261603e25",
+    "status": "accepted",
+    "subject_digest": "aec19445c17201ee5910d892ac19b5fcaddcd73f104e109e0f9d9e234ac5d483",
+    "subject_id": "pair:a69d6ae734f5be977a63603e80698046bb4c08b24edebd6c5517c521117c613a",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "SAME",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "SAME",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.notice.jan2025.amended.interval",
+        "nodejs.notice.jan2025.interval"
+      ],
+      "issuer": [
+        "nodejs.notice.jan2025.amended.issuer",
+        "nodejs.notice.jan2025.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.notice.jan2025.amended.occurrence_type",
+        "nodejs.notice.jan2025.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.notice.jan2025.amended.official_reference",
+        "nodejs.notice.jan2025.official_reference"
+      ],
+      "place": [
+        "nodejs.notice.jan2025.amended.place",
+        "nodejs.notice.jan2025.place"
+      ]
+    },
+    "directory_ack": {
+      "generation": 2,
+      "request_id": "public.v3.notice.renamed.release",
+      "status": "finalized"
+    },
+    "consumer_ack": {
+      "fingerprint": "a545b07970baa3945834c1616277e5b4f46b600431cb34973181cf69c0a675d8",
+      "generation": 2,
+      "operation_id": "delivery:public.v3.notice.renamed.release",
+      "references": [
+        "release.nodejs.notice.jan2025",
+        "release.nodejs.notice.jan2025.amended"
+      ],
+      "request_id": "public.v3.notice.renamed.release",
+      "status": "finalized"
+    }
+  },
+  "incident.stats": {
+    "accepted_count": 1,
+    "capacity": 1000,
+    "held_count": 2,
+    "references": 2
+  },
+  "release.stats": {
+    "accepted_count": 1,
+    "capacity": 1000,
+    "held_count": 5,
+    "references": 5
+  },
+  "releases.distinct.verification": {
+    "status": "unresolved",
+    "contract_result_written": false,
+    "attempts": [
+      {
+        "transaction_hash": "0x4f851111c829207ed26dd9a772a818983b24a6f43cf8ef1525d9bd0917b5df0e",
+        "status": "FINALIZED",
+        "consensus_result": "MAJORITY_DISAGREE"
+      },
+      {
+        "transaction_hash": "0xa569427d117f452f07b923a838c5d910156753a0e29dda41fc47851d76671ec1",
+        "status": "FINALIZED",
+        "consensus_result": "MAJORITY_DISAGREE"
+      },
+      {
+        "transaction_hash": "0x8ba91778d3f40239b9a5da7a1e317aa4059b45aa06942c67908e148952b59521",
+        "status": "FINALIZED",
+        "consensus_result": "MAJORITY_DISAGREE"
+      }
+    ]
+  }
+}

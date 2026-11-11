@@ -1,0 +1,8 @@
+{
+  "classification": "authentic signed broadcast recovery probe, not an email session",
+  "operation_id": "b4e0d8f0-4be6-4f91-821e-ee71077bac1b",
+  "transaction_hash": "0x7ab3271791ac203085b70a73fee5647bfd00a50423585a9d34eccb67513f7153",
+  "signer": "0xDDF754eF6D9c7e7Cd5E61dEeD309045d52465076",
+  "payload_digest": "b8af9a7204bc394c28152aec061c557e8865bd64c04ef54ac9135125c88da8af",
+  "reference_id": "recovery.b4e0d8f04be64f91821eee71077bac1b"
+}

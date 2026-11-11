@@ -1,0 +1,9 @@
+[
+  {
+    "operation_id": "b4e0d8f0-4be6-4f91-821e-ee71077bac1b",
+    "transaction_hash": "0x7ab3271791ac203085b70a73fee5647bfd00a50423585a9d34eccb67513f7153",
+    "status": "finalized",
+    "acknowledged": true,
+    "error": null
+  }
+]

@@ -1,0 +1,197 @@
+{
+  "base": "https://eventweave.vercel.app",
+  "results": [
+    {
+      "width": 390,
+      "route": "/",
+      "heading": "Names change.\nHistory shouldn’t.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/",
+      "heading": "Names change.\nHistory shouldn’t.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "heading": "Names change.\nHistory shouldn’t.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/workspace?left=nodejs.notice.jan2025&right=nodejs.notice.jan2025.amended",
+      "heading": "Untangle the reports.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/workspace?left=nodejs.notice.jan2025&right=nodejs.notice.jan2025.amended",
+      "heading": "Untangle the reports.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/workspace?left=nodejs.notice.jan2025&right=nodejs.notice.jan2025.amended",
+      "heading": "Untangle the reports.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/new",
+      "heading": "Give the occurrence a home.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/new",
+      "heading": "Give the occurrence a home.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/new",
+      "heading": "Give the occurrence a home.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/challenges",
+      "heading": "History can be corrected.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/challenges",
+      "heading": "History can be corrected.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/challenges",
+      "heading": "History can be corrected.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/applications",
+      "heading": "Shared evidence. Separate judgement.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/applications",
+      "heading": "Shared evidence. Separate judgement.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/applications",
+      "heading": "Shared evidence. Separate judgement.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/guide",
+      "heading": "A name isn’t an identity.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/guide",
+      "heading": "A name isn’t an identity.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/guide",
+      "heading": "A name isn’t an identity.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/events/nodejs.notice.jan2025",
+      "heading": "Node.js January 2025 security release notice",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/events/nodejs.notice.jan2025",
+      "heading": "Node.js January 2025 security release notice",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/events/nodejs.notice.jan2025",
+      "heading": "Node.js January 2025 security release notice",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 390,
+      "route": "/activity",
+      "heading": "Follow the thread.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 768,
+      "route": "/activity",
+      "heading": "Follow the thread.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "route": "/activity",
+      "heading": "Follow the thread.",
+      "overflow": false,
+      "alerts": [],
+      "errors": []
+    }
+  ]
+}

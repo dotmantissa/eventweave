@@ -1,0 +1,12 @@
+{
+  "production_url": "https://eventweave.vercel.app",
+  "status": "ok",
+  "deployment": {
+    "id": "dpl_CdpcAHeeBrwi1ivTSAsN2azuddjZ",
+    "url": "https://eventweave-e17ldg044-mantissas-projects.vercel.app",
+    "readyState": "READY",
+    "target": "production",
+    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_CdpcAHeeBrwi1ivTSAsN2azuddjZ"
+  },
+  "message": "Deployment eventweave-e17ldg044-mantissas-projects.vercel.app ready. Production URL: https://eventweave.vercel.app"
+}
