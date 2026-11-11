@@ -1,4 +1,6 @@
-contract_path: contracts/deployable
+paths:
+  contracts: contracts/deployable
 networks:
+  default: studionet
   studionet: {}
   localnet: {}
