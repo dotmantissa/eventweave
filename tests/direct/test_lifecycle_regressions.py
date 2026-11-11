@@ -205,3 +205,22 @@ def test_source_revision_correction_restores_certified_successor_references(syst
     correction=certify(s,request_factory,'a','b','DISTINCT',generation=2)
     c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id']); c.finalize()
     assert c.call(s.incident,'get_stats')['accepted_count']==2
+
+
+def test_recovery_restoration_and_its_acknowledgement_can_be_replayed(system,event_factory,request_factory):
+    s=system; c=s.chain
+    event_factory('a'); event_factory('b'); reserve(s,'ab')
+    original=certify(s,request_factory,'a','b'); scope=finalize_merge(s,[original],'a','b','ab'); publish(s,original)
+    correction=certify(s,request_factory,'a','b','DISTINCT',generation=2)
+    c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'])
+    c.messages.clear()  # Simulate a missing restoration callback after recovery finalized.
+    assert c.call(s.incident,'get_stats')['accepted_count']==0
+    c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'])
+    sender,target,method,args=c.messages.pop(0); c.call(target,method,*args,sender=sender)
+    assert c.call(s.incident,'get_stats')['accepted_count']==2
+    notice_id=c.call(s.directory,'get_latest_delivery',original['envelope']['request_id'])
+    c.messages.clear()  # The application succeeded, but its directory acknowledgement was lost.
+    assert c.call(s.directory,'get_consumer_ack',notice_id)=={}
+    c.call(s.directory,'retry_notice',notice_id); c.finalize()
+    assert c.call(s.directory,'get_consumer_ack',notice_id)['status']=='finalized'
+    assert c.call(s.incident,'get_stats')['accepted_count']==2

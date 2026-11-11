@@ -29,6 +29,7 @@ class ConsumerDirectory(gl.Contract):
     event_alias_counts: TreeMap[str, u32]
     event_aliases: TreeMap[str, str]
     invalidated_relations: TreeMap[str, bool]
+    recoveries: TreeMap[str, str]
 
     def __init__(self, court_address: str, registry_address: str):
         self.owner = gl.message.sender_address
@@ -304,7 +305,7 @@ class ConsumerDirectory(gl.Contract):
         return operation_id
 
     @gl.public.write
-    def publish_alias(self, request_id: str) -> None:
+    def publish_alias(self, request_id: str) -> str:
         if request_id not in self.certificates:
             fail('Certificate has not crossed finalized delivery')
         certificate = json.loads(self.certificates[request_id]); self._live(certificate)
@@ -328,7 +329,7 @@ class ConsumerDirectory(gl.Contract):
                 if r in types and types[r] != kind and not certificate['unresolved']:
                     fail('Cluster has conflicting certified attributes')
                 types[r] = kind
-        self._publish(certificate, mapping, types, proofs)
+        return self._publish(certificate, mapping, types, proofs)
 
     def _revoke_notice(self, operation_id: str, successor_id: str):
         if operation_id in self.revocation_notices:
@@ -420,6 +421,14 @@ class ConsumerDirectory(gl.Contract):
         if correction_id not in self.certificates:
             fail('Recovery needs delivered correction')
         certificate = json.loads(self.certificates[correction_id]); self._live(certificate)
+        recovery_key = scope + ':' + correction_id
+        if recovery_key in self.recoveries:
+            prior = json.loads(self.recoveries[recovery_key])
+            if event_id not in prior['members']:
+                fail('Recovery does not cover this event')
+            for operation_id in prior['notices']:
+                self.retry_notice(operation_id)
+            return
         members = self._members(scope, event_id)
         if certificate['scope'] != scope or certificate['decision'] != 'DISTINCT' or certificate['status'] != 'finalized' or not all(r in members for r in (certificate['left'], certificate['right'])) or not self.quarantined.get(self._node(scope, event_id), False):
             fail('Recovery requires current finalized DISTINCT bound to the quarantined component')
@@ -453,13 +462,26 @@ class ConsumerDirectory(gl.Contract):
             self.alias_generation[node] = u32(int(self.alias_generation.get(node, u32(0))) + 1)
             alias = {'event_id': member, 'canonical_id': member, 'members': [member], 'scope': scope, 'operation_id': 'recovery:' + correction_id, 'generation': int(self.alias_generation[node]), 'status': 'finalized'}
             self.aliases[node] = encoded(alias); self._record_alias(alias)
+        recovery_notices = []
         for item in restore.values():
             prior = item['certificate']
             cert = {k: prior[k] for k in ENVELOPE_KEYS}
             cert.update(left=prior['left'], right=prior['right'], scope=scope, decision='DISTINCT', unresolved=False, status='finalized', superseded_by='', recovery_correction=correction_id)
             # Restore certified original occurrences as singletons, with no old SAME reuse permission.
-            self._publish(cert, {r: r for r in sorted(item['members'])}, item['types'], [correction_id], True)
-        append(self.history, {'operation': 'component_recovered', 'scope': scope, 'members': members, 'correction_id': correction_id})
+            recovery_notices.append(self._publish(cert, {r: r for r in sorted(item['members'])}, item['types'], [correction_id], True))
+        self.recoveries[recovery_key] = encoded({'members': members, 'notices': recovery_notices})
+        append(self.history, {'operation': 'component_recovered', 'scope': scope, 'members': members, 'correction_id': correction_id, 'notices': recovery_notices})
+
+    @gl.public.write
+    def retry_notice(self, operation_id: str) -> None:
+        if not self.is_notice_current(operation_id):
+            fail('Application operation is stale or revoked')
+        notice = json.loads(self.notices[operation_id])
+        gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').apply_identity(encoded(notice))
+
+    @gl.public.view
+    def get_latest_delivery(self, request_id: str) -> str:
+        return self.latest_deliveries.get(request_id, '')
 
     @gl.public.write
     def acknowledge(self, operation_id: str, acknowledgement_json: str) -> None:

@@ -351,6 +351,9 @@ class IdentityCourt(gl.Contract):
             fail('Only request owner may assess')
         if request_id in self.results:
             return
+        generation_key = request['envelope']['subject_id'] + ':' + request['envelope']['consumer_address']
+        if self.active_requests.get(generation_key, '') != request_id:
+            fail('Assessment was cancelled or replaced')
         attempts = int(self.attempts[request_id])
         if attempts >= 3:
             fail('Three attempts reached; open a successor request')
