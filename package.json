@@ -1,0 +1,20 @@
+{
+  "name": "eventweave",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
+  "engines": {"node": ">=20.18"},
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently -n api,web 'npm run dev -w @eventweave/api' 'npm run dev -w @eventweave/web'",
+    "build": "npm run build -w @eventweave/web && npm run typecheck",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && python3 scripts/contracts.py --check",
+    "test": "vitest run && python3 -m pytest tests/direct tests/validator -q",
+    "deploy:contracts": "tsx scripts/deploy.ts",
+    "network:verify": "tsx scripts/network-verify.ts",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "worker": "tsx apps/api/src/worker.ts"
+  }
+}

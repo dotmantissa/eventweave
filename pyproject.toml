@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+testpaths = ["tests/direct", "tests/validator"]
+addopts = "-ra"
+markers = ["network: signed live Studio integration", "synthetic: controlled evidence fixtures"]

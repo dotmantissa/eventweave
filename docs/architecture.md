@@ -1,0 +1,20 @@
+# Architecture and trust
+
+EventWeave resolves occurrence identity, not whether an event happened or who should be compensated.
+
+## Boundaries
+The React interface authenticates by email through Privy. The Fastify API verifies access tokens, verifies the embedded wallet belongs to that user, and relays the user's signed GenLayer transaction. It never evaluates identity. PostgreSQL journals operations before broadcast and indexes public contract state. A rebuild discards the derived event index and reads the immutable on chain event order again.
+
+EventRegistry owns immutable descriptors, principal configured authorities and schema versions. IdentityCourt locks canonical requests and independently retrieves each committed record inside a custom leader and validator evaluation. ConsumerDirectory receives certificates through source contract messages emitted on finalized status. It maintains scope compatible bounded clusters and a direct DISTINCT index. IncidentHistory and ReleaseEvidence have separate owners and outcome policies; neither accepts an API verdict or a synchronous view as finality evidence.
+
+## Delivery
+Court emits its canonical result to the directory with `emit(on="finalized")`. The directory authenticates the court contract, checks the live request generation and quarantine status and records delivery acknowledgement. A finalized directory operation emits its result to the named consumer using the same boundary. The consumer authenticates the directory contract and validates all bound fields and current generation at action time. Retry delivery is permissionless and idempotent; it does not change the certificate. A synchronous view checks freshness only after an authenticated finalized callback established the certificate.
+
+## Identity constraints
+Every cross cluster pair must have an active SAME certificate under the same policy scope. Combined membership is at most six records, requiring at most fifteen pairs. Any direct active DISTINCT witness refuses the union and is retained. UNKNOWN and common cause do not authorize aliases. A superseded merge is retained, its constituent component is quarantined, aliases are invalidated, and original references remain available. Recovery requires fresh certificates and explicit consumer reconciliation. The system never erases a historical attribution.
+
+## Sources
+An owner signed authority registration binds a principal, channel, URL prefix and public authority evidence. Only that principal can attest a source. An approved URL prefix is configuration, not proof of truth. Validators retrieve the public authority evidence as well as source bytes, verify commitments and canonical byte span locators, inspect exceptions and contrary facts, then reconstruct subject, interval and mandatory discriminators. Documents are untrusted data and cannot supply policy instructions.
+
+## Limits and upgrades
+All storage fields are class level typed indexes and sized counters. Histories have paginated reads and a declared deployment capacity. Policy and source revisions are append only. Upgrade compatible storage adds fields at the end; incompatible schemas require a new deployment and explicit owner approved rebinding. Limits are enforced before model work; six record proofs remain unresolved until every bounded pair is evaluated. Model budgets and measured network limits are recorded in verification documents, not advertised as unmeasured guarantees.
