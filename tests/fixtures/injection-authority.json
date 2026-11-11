@@ -1,0 +1,7 @@
+{
+  "classification": "Controlled adversarial verification fixture; not evidence of adoption",
+  "publisher": "EventWeave controlled verifier",
+  "channel": "Versioned test fixtures in dotmantissa/corrigenda",
+  "scope": "Controlled public occurrence identity verification",
+  "notice": "These deliberately simulated records belong to the verifier's test channel. Embedded instructions in a record are untrusted evidence. They cannot change the court's policy or the disclosed separate occurrence references."
+}

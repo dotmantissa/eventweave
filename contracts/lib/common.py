@@ -86,7 +86,7 @@ def envelope(value: dict) -> dict:
     if set(value.keys()) != set(ENVELOPE_KEYS):
         fail('Envelope fields do not match schema')
     for key in ('request_id', 'policy_id', 'subject_id'):
-        text(value[key])
+        identifier(value[key])
     for key in ('subject_digest', 'source_manifest_digest', 'consequence_digest'):
         hash_text(value[key])
     for key in ('owner', 'consumer_address'):
@@ -103,6 +103,7 @@ def envelope(value: dict) -> dict:
 
 
 def pair_key(left: str, right: str, scope: str) -> str:
+    identifier(left); identifier(right)
     if left == right:
         fail('A pair needs distinct records')
     return 'pair:' + digest({'scope': scope, 'records': sorted((left, right))})
@@ -113,7 +114,7 @@ def source_record(value: dict) -> dict:
     if set(value.keys()) != keys:
         fail('Source fields do not match schema')
     for key in ('record_id', 'authority_id', 'channel', 'revision', 'scope'):
-        text(value[key])
+        identifier(value[key])
     text(value['url'], 2048); hash_text(value['raw_hash'])
     size = number(value['byte_length'], MAX_SOURCE_BYTES)
     if size < 1:
@@ -125,7 +126,7 @@ def source_record(value: dict) -> dict:
     for span in spans:
         if not isinstance(span, dict) or set(span) != {'span_id', 'attribute', 'start', 'end', 'raw_hash'}:
             fail('Invalid span locator')
-        text(span['span_id']); hash_text(span['raw_hash'])
+        identifier(span['span_id']); hash_text(span['raw_hash'])
         if span['raw_hash'] != value['raw_hash'] or span['attribute'] not in ATTRIBUTES or span['attribute'] in seen:
             fail('Invalid span coverage')
         seen.add(span['attribute'])
@@ -143,6 +144,27 @@ def page(history, offset: int, limit: int) -> list:
 
 
 def append(history, value):
-    if len(history) >= MAX_HISTORY:
-        fail('Deployment history capacity reached')
     history.append(encoded(value))
+
+
+def https_channel(url: str, prefix: str) -> bool:
+    # Parse an intentionally strict HTTPS subset without ambiguous URL normalization.
+    def parts(value):
+        if not value.startswith('https://') or any(c in value for c in ('\\', '#', '?', '%')) or any(ord(c) <= 32 or ord(c) >= 127 for c in value):
+            fail('Invalid authority HTTPS URL')
+        rest = value[8:]; host, separator, path = rest.partition('/')
+        if not host or '@' in host or ':' in host or host.startswith('.') or host.endswith('.') or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-' for c in host):
+            fail('Invalid authority host')
+        path = '/' + path if separator else '/'
+        if any(segment in ('.', '..') for segment in path.split('/')):
+            fail('Ambiguous authority path')
+        return host.lower(), path
+    host, path = parts(url); prefix_host, prefix_path = parts(prefix)
+    return host == prefix_host and (path == prefix_path or path.startswith(prefix_path if prefix_path.endswith('/') else prefix_path + '/'))
+
+
+def identifier(value) -> str:
+    text(value)
+    if any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.:' for c in value):
+        fail('Invalid record identifier')
+    return value

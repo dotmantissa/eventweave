@@ -18,7 +18,7 @@ def test_complete_proof_and_non_merge_witness(system,event_factory,request_facto
     ab=certify(system,request_factory,'a','b');proof,result=merge(system,[ab],'a','b');assert result['status']=='pending';system.chain.call(system.directory,'finalize_alias',proof['operation_id'])
     bc=certify(system,request_factory,'b','c');ac=certify(system,request_factory,'a','c','DISTINCT')
     proof,result=merge(system,[ab,bc,ac],'a','c','merge.abc');assert result['status']=='refused';assert result['witness']==ac['envelope']['request_id']
-    with pytest.raises(Exception,match='Complete compatible'):system.chain.call(system.directory,'finalize_alias',proof['operation_id'])
+    with pytest.raises(Exception,match='Unknown merge proposal'):system.chain.call(system.directory,'finalize_alias',proof['operation_id'])
     assert system.chain.call(system.directory,'get_alias_history',0,50)[0]['event_id']=='a'
 
 @pytest.mark.synthetic
@@ -46,9 +46,9 @@ def test_correction_retires_all_consumers_in_the_cluster(system,event_factory,re
         for id in ['a','b']:c.call(consumer,'register_reference',id,'ref.'+id,sender=owner)
     incident=certify(system,request_factory,'a','b',consumer=system.incident)
     proof,_=merge(system,[incident],'a','b');c.call(system.directory,'finalize_alias',proof['operation_id']);c.call(system.directory,'publish_alias',incident['envelope']['request_id']);c.finalize()
-    release=certify(system,request_factory,'a','b',consumer=system.release,generation=2)
+    release=certify(system,request_factory,'a','b',consumer=system.release,generation=1)
     c.call(system.directory,'publish_alias',release['envelope']['request_id']);c.finalize()
-    correction=certify(system,request_factory,'a','b','DISTINCT',generation=3,consumer=system.incident)
+    correction=certify(system,request_factory,'a','b','DISTINCT',generation=2,consumer=system.incident)
     c.finalize()
     assert c.call(system.incident,'get_stats')['accepted_count']==0
     assert c.call(system.release,'get_stats')['accepted_count']==0

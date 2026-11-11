@@ -89,7 +89,7 @@ def envelope(value: dict) -> dict:
     if set(value.keys()) != set(ENVELOPE_KEYS):
         fail('Envelope fields do not match schema')
     for key in ('request_id', 'policy_id', 'subject_id'):
-        text(value[key])
+        identifier(value[key])
     for key in ('subject_digest', 'source_manifest_digest', 'consequence_digest'):
         hash_text(value[key])
     for key in ('owner', 'consumer_address'):
@@ -106,6 +106,7 @@ def envelope(value: dict) -> dict:
 
 
 def pair_key(left: str, right: str, scope: str) -> str:
+    identifier(left); identifier(right)
     if left == right:
         fail('A pair needs distinct records')
     return 'pair:' + digest({'scope': scope, 'records': sorted((left, right))})
@@ -116,7 +117,7 @@ def source_record(value: dict) -> dict:
     if set(value.keys()) != keys:
         fail('Source fields do not match schema')
     for key in ('record_id', 'authority_id', 'channel', 'revision', 'scope'):
-        text(value[key])
+        identifier(value[key])
     text(value['url'], 2048); hash_text(value['raw_hash'])
     size = number(value['byte_length'], MAX_SOURCE_BYTES)
     if size < 1:
@@ -128,7 +129,7 @@ def source_record(value: dict) -> dict:
     for span in spans:
         if not isinstance(span, dict) or set(span) != {'span_id', 'attribute', 'start', 'end', 'raw_hash'}:
             fail('Invalid span locator')
-        text(span['span_id']); hash_text(span['raw_hash'])
+        identifier(span['span_id']); hash_text(span['raw_hash'])
         if span['raw_hash'] != value['raw_hash'] or span['attribute'] not in ATTRIBUTES or span['attribute'] in seen:
             fail('Invalid span coverage')
         seen.add(span['attribute'])
@@ -146,9 +147,30 @@ def page(history, offset: int, limit: int) -> list:
 
 
 def append(history, value):
-    if len(history) >= MAX_HISTORY:
-        fail('Deployment history capacity reached')
     history.append(encoded(value))
+
+
+def https_channel(url: str, prefix: str) -> bool:
+    # Parse an intentionally strict HTTPS subset without ambiguous URL normalization.
+    def parts(value):
+        if not value.startswith('https://') or any(c in value for c in ('\\', '#', '?', '%')) or any(ord(c) <= 32 or ord(c) >= 127 for c in value):
+            fail('Invalid authority HTTPS URL')
+        rest = value[8:]; host, separator, path = rest.partition('/')
+        if not host or '@' in host or ':' in host or host.startswith('.') or host.endswith('.') or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-' for c in host):
+            fail('Invalid authority host')
+        path = '/' + path if separator else '/'
+        if any(segment in ('.', '..') for segment in path.split('/')):
+            fail('Ambiguous authority path')
+        return host.lower(), path
+    host, path = parts(url); prefix_host, prefix_path = parts(prefix)
+    return host == prefix_host and (path == prefix_path or path.startswith(prefix_path if prefix_path.endswith('/') else prefix_path + '/'))
+
+
+def identifier(value) -> str:
+    text(value)
+    if any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.:' for c in value):
+        fail('Invalid record identifier')
+    return value
 
 class EventRegistry(gl.Contract):
     owner: Address
@@ -205,7 +227,7 @@ class EventRegistry(gl.Contract):
         value['principal'] = address(value['principal'])
         for key in ('url_prefix', 'evidence_url'):
             text(value[key], 2048)
-            if not value[key].startswith('https://'):
+            if not https_channel(value[key], value[key]):
                 fail('Authority URLs require HTTPS')
         hash_text(value['evidence_hash']); number(value['evidence_bytes'], MAX_SOURCE_BYTES)
         if value['evidence_bytes'] < 1:
@@ -229,6 +251,7 @@ class EventRegistry(gl.Contract):
             fail('Invalid descriptor fields')
         for key in ('event_id', 'schema_id', 'issuer', 'place', 'official_reference'):
             text(value[key])
+        identifier(value['event_id']); identifier(value['schema_id'])
         text(value['title'], 180); number(value['schema_revision'])
         start = timestamp(value['interval_start']); end = timestamp(value['interval_end'])
         if end < start or value['occurrence_type'] not in KINDS:
@@ -243,7 +266,7 @@ class EventRegistry(gl.Contract):
             fail('Authority is quarantined')
         if source['scope'] != schema['scope'] or authority['scope'] != schema['scope'] or source['channel'] != authority['channel']:
             fail('Source scope or channel mismatch')
-        if not source['url'].startswith(authority['url_prefix']):
+        if not https_channel(source['url'], authority['url_prefix']):
             fail('Source is outside configured authority channel')
         request_digest = digest(value)
         key = value['event_id']
@@ -255,6 +278,8 @@ class EventRegistry(gl.Contract):
         source_key = source['record_id'] + ':' + source['revision']
         if source_key in self.source_index:
             fail('Source revision already registered; use its original event')
+        if int(self.count) >= MAX_HISTORY:
+            fail('Deployment record capacity reached')
         value.update(owner=sender, descriptor_digest=request_digest, status='pending', authority_revision=authority['revision'])
         self.events[key] = encoded(value)
         self.source_index[source_key] = key
@@ -272,7 +297,7 @@ class EventRegistry(gl.Contract):
             fail('Only original attesting principal may revise its public source')
         if original['quarantined'] or self.quarantines.get(source['authority_id'], False):
             fail('Authority is quarantined')
-        if source['record_id'] != original['source']['record_id'] or source['scope'] != original['source']['scope'] or source['scope'] != authority['scope'] or source['channel'] != authority['channel'] or not source['url'].startswith(authority['url_prefix']):
+        if source['record_id'] != original['source']['record_id'] or source['scope'] != original['source']['scope'] or source['scope'] != authority['scope'] or source['channel'] != authority['channel'] or not https_channel(source['url'], authority['url_prefix']):
             fail('Successor source must retain record, scope and configured authority channel')
         if source == original['source']:
             return

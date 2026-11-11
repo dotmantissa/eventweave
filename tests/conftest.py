@@ -50,7 +50,18 @@ class ControlledChain:
         self.contracts[address] = instance; self.vms[address] = vm
         return address
 
-    def call(self, address, method, *args, sender=OWNER):
+    def call(self, address, method, *args, sender=None):
+        if sender is None:
+            sender = OWNER
+            if method in ('assess', 'supersede_relation', 'cancel_request') and args:
+                request_id = args[0]
+                sender = json.loads(self.contracts[address].requests[request_id])['envelope']['owner']
+            if method == 'compare_records' and args:
+                sender = json.loads(args[0])['envelope']['owner']
+            if method == 'propose_merge' and args:
+                proof = json.loads(args[0]); relation = proof['relations'][0] if proof.get('relations') else ''
+                if relation:
+                    sender = json.loads(self.contracts[address].certificates[relation])['owner']
         import genlayer as glmodule
         gl = glmodule.gl; saved_message = gl.message; saved_raw = dict(gl.message_raw); saved_vm=wasi_mock.get_vm()
         vm=self.vms[address]; snapshot=vm._storage.snapshot(); messages=len(self.messages)
@@ -88,7 +99,7 @@ class ControlledChain:
     def semantic(self, court, request_id, vector=None, exception='NONE', authority=True):
         request=json.loads(self.contracts[court].requests[request_id]);vector=vector or {a:'SAME' for a in ATTRS}
         witnesses={a:sorted(span['span_id'] for record in request['records'] for span in record['source']['spans'] if span['attribute']==a) for a in ATTRS}
-        answer={'vector':vector,'authority_supported':authority,'exceptions_checked':True,'common_cause':'UNKNOWN','witnesses':witnesses,'facts':{a:'Controlled source supports this discriminator.' for a in ATTRS},'exception':exception}
+        answer={'vector':vector,'authority_supported':authority,'exceptions_checked':True,'common_cause':'UNKNOWN','witnesses':witnesses,'facts':{a:'Controlled source supports this discriminator.' for a in ATTRS},'exception':exception,'certified_types':{r['event_id']:r['occurrence_type'] for r in request['records']}}
         self.vms[court].mock_llm('.*',encode(answer)); return answer
 
 @pytest.fixture
@@ -122,7 +133,7 @@ def request_factory(system):
         consumer=consumer or system.incident;c=system.chain
         records=sorted([c.call(system.registry,'get_identity',left),c.call(system.registry,'get_identity',right)],key=lambda r:r['event_id'])
         scope='scope:'+digest({'scope':system.policy['scope'],'policy_id':'occurrence.v1','policy_revision':1});subject='pair:'+digest({'scope':scope,'records':sorted((left,right))})
-        cfg=c.call(consumer,'get_configuration');request_id=request_id or f'r.{left}.{right}.{generation}'
-        env={'request_id':request_id,'owner':OWNER,'parties':[OWNER],'policy_id':'occurrence.v1','policy_revision':1,'subject_id':subject,'subject_digest':digest([{'event_id':r['event_id'],'descriptor_digest':r['descriptor_digest']} for r in records]),'source_manifest_digest':digest([r['source'] for r in records]),'consumer_address':consumer,'consequence_digest':cfg['consequence_digest'],'generation':generation,'deadline':'2026-11-12T10:00:00Z'}
-        request={'envelope':env,'left':left,'right':right};c.call(system.court,'compare_records',encode(request));return request
+        cfg=c.call(consumer,'get_configuration');request_id=request_id or f'r.{left}.{right}.{generation}.{consumer[-6:]}'
+        env={'request_id':request_id,'owner':cfg['owner'],'parties':[cfg['owner']],'policy_id':'occurrence.v1','policy_revision':1,'subject_id':subject,'subject_digest':digest([{'event_id':r['event_id'],'descriptor_digest':r['descriptor_digest']} for r in records]),'source_manifest_digest':digest([r['source'] for r in records]),'consumer_address':consumer,'consequence_digest':cfg['consequence_digest'],'generation':generation,'deadline':'2026-11-12T10:00:00Z'}
+        request={'envelope':env,'left':left,'right':right};c.call(system.court,'compare_records',encode(request),sender=cfg['owner']);return request
     return make

@@ -89,7 +89,7 @@ def envelope(value: dict) -> dict:
     if set(value.keys()) != set(ENVELOPE_KEYS):
         fail('Envelope fields do not match schema')
     for key in ('request_id', 'policy_id', 'subject_id'):
-        text(value[key])
+        identifier(value[key])
     for key in ('subject_digest', 'source_manifest_digest', 'consequence_digest'):
         hash_text(value[key])
     for key in ('owner', 'consumer_address'):
@@ -106,6 +106,7 @@ def envelope(value: dict) -> dict:
 
 
 def pair_key(left: str, right: str, scope: str) -> str:
+    identifier(left); identifier(right)
     if left == right:
         fail('A pair needs distinct records')
     return 'pair:' + digest({'scope': scope, 'records': sorted((left, right))})
@@ -116,7 +117,7 @@ def source_record(value: dict) -> dict:
     if set(value.keys()) != keys:
         fail('Source fields do not match schema')
     for key in ('record_id', 'authority_id', 'channel', 'revision', 'scope'):
-        text(value[key])
+        identifier(value[key])
     text(value['url'], 2048); hash_text(value['raw_hash'])
     size = number(value['byte_length'], MAX_SOURCE_BYTES)
     if size < 1:
@@ -128,7 +129,7 @@ def source_record(value: dict) -> dict:
     for span in spans:
         if not isinstance(span, dict) or set(span) != {'span_id', 'attribute', 'start', 'end', 'raw_hash'}:
             fail('Invalid span locator')
-        text(span['span_id']); hash_text(span['raw_hash'])
+        identifier(span['span_id']); hash_text(span['raw_hash'])
         if span['raw_hash'] != value['raw_hash'] or span['attribute'] not in ATTRIBUTES or span['attribute'] in seen:
             fail('Invalid span coverage')
         seen.add(span['attribute'])
@@ -146,9 +147,30 @@ def page(history, offset: int, limit: int) -> list:
 
 
 def append(history, value):
-    if len(history) >= MAX_HISTORY:
-        fail('Deployment history capacity reached')
     history.append(encoded(value))
+
+
+def https_channel(url: str, prefix: str) -> bool:
+    # Parse an intentionally strict HTTPS subset without ambiguous URL normalization.
+    def parts(value):
+        if not value.startswith('https://') or any(c in value for c in ('\\', '#', '?', '%')) or any(ord(c) <= 32 or ord(c) >= 127 for c in value):
+            fail('Invalid authority HTTPS URL')
+        rest = value[8:]; host, separator, path = rest.partition('/')
+        if not host or '@' in host or ':' in host or host.startswith('.') or host.endswith('.') or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-' for c in host):
+            fail('Invalid authority host')
+        path = '/' + path if separator else '/'
+        if any(segment in ('.', '..') for segment in path.split('/')):
+            fail('Ambiguous authority path')
+        return host.lower(), path
+    host, path = parts(url); prefix_host, prefix_path = parts(prefix)
+    return host == prefix_host and (path == prefix_path or path.startswith(prefix_path if prefix_path.endswith('/') else prefix_path + '/'))
+
+
+def identifier(value) -> str:
+    text(value)
+    if any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.:' for c in value):
+        fail('Invalid record identifier')
+    return value
 
 class ReleaseEvidence(gl.Contract):
     owner: Address
@@ -168,6 +190,7 @@ class ReleaseEvidence(gl.Contract):
     capacity: u32
     restrictions: TreeMap[str, u32]
     approved_types: DynArray[str]
+    latest_acknowledgements: TreeMap[str, str]
 
     def __init__(self, directory_address: str, registry_address: str, policy_id: str, policy_revision: int, capacity: int):
         self.owner = gl.message.sender_address
@@ -185,14 +208,16 @@ class ReleaseEvidence(gl.Contract):
     def register_reference(self, event_id: str, reference_id: str) -> None:
         if gl.message.sender_address != self.owner:
             fail('Only consumer owner may register its references')
-        text(event_id); text(reference_id)
+        identifier(event_id); identifier(reference_id)
         event = gl.get_contract_at(self.registry).view().get_identity(event_id)
-        if event['quarantined'] or event['schema_id'] != self.policy_id or event['schema_revision'] != int(self.policy_revision) or event['occurrence_type'] not in self._types():
+        if event['quarantined'] or event['schema_id'] != self.policy_id or event['schema_revision'] != int(self.policy_revision):
             fail('Consumer rules reject this event or policy')
         if reference_id in self.references:
             if json.loads(self.references[reference_id])['event_id'] != event_id:
                 fail('Conflicting consumer reference')
             return
+        if len(self.reference_order) >= MAX_HISTORY:
+            fail('Deployment reference capacity reached')
         if int(self.held_count) >= int(self.capacity):
             fail('Capacity includes pending holds')
         self.references[reference_id] = encoded({'reference_id': reference_id, 'event_id': event_id, 'original_owner': str(self.owner).lower(), 'canonical_id': event_id, 'status': 'pending', 'generation': 0, 'evidence_hash': event['source']['raw_hash']})
@@ -207,7 +232,7 @@ class ReleaseEvidence(gl.Contract):
         value = self.get_reference(reference_id)
         if value['status'] == 'released':
             return
-        if value['status'] != 'pending':
+        if value['status'] not in ('pending', 'unresolved', 'superseded'):
             fail('Only an unapplied hold may be released')
         value['status'] = 'released'; self.references[reference_id] = encoded(value)
         self.held_count = u32(int(self.held_count) - 1)
@@ -218,23 +243,14 @@ class ReleaseEvidence(gl.Contract):
             fail('Only authenticated finalized directory messages may act')
         if notice['consumer_address'] != str(gl.message.contract_address).lower() or notice['directory'] != str(self.directory).lower() or notice['policy_id'] != self.policy_id or notice['policy_revision'] != int(self.policy_revision) or notice['consequence_digest'] != self.consequence_digest:
             fail('Consumer certificate binding mismatch')
-        live = gl.get_contract_at(self.directory).view().get_relation(notice['request_id'])
-        for key in ENVELOPE_KEYS:
-            if live[key] != notice[key]:
-                fail('Notice differs from finalized bindings')
+        live = gl.get_contract_at(self.directory).view().get_notice(notice['operation_id'])
+        if digest(live) != digest(notice):
+            fail('Notice differs from finalized operation')
         if invalidation:
             if live['status'] != 'superseded':
                 fail('No finalized supersession')
-        else:
-            if live['status'] not in ('finalized', 'unresolved', 'timeout'):
-                fail('No finalized certificate')
-            court_live = gl.get_contract_at(self.directory).view().is_current(notice['request_id'])
-            if not court_live:
-                fail('Stale finalized delivery')
-            for event_id, canonical_id in notice['canonical_mappings'].items():
-                identity = gl.get_contract_at(self.directory).view().get_identity(event_id, notice['scope'])
-                if identity['status'] == 'quarantined' or canonical_id != identity['canonical_id']:
-                    fail('Alias is quarantined or changed')
+        elif not gl.get_contract_at(self.directory).view().is_notice_current(notice['operation_id']):
+            fail('Stale finalized delivery')
         return live
 
     def _remove_count(self, value: dict):
@@ -258,49 +274,47 @@ class ReleaseEvidence(gl.Contract):
         notice = parse(notice_json); self._check_notice(notice)
         operation_id = notice['operation_id']; fingerprint = digest(notice)
         if operation_id in self.acknowledgements:
-            if json.loads(self.acknowledgements[operation_id])['fingerprint'] != fingerprint:
+            ack = json.loads(self.acknowledgements[operation_id])
+            if ack['fingerprint'] != fingerprint:
                 fail('Conflicting operation acknowledgement')
+            gl.get_contract_at(self.directory).emit(on='finalized').acknowledge(operation_id, encoded(ack))
             return
-        subject = notice['subject_id']; generation = notice['generation']
-        if generation < int(self.generations.get(subject, u32(0))) or generation <= int(self.restrictions.get(subject, u32(0))):
-            fail('Stale or restricted generation')
-        self.generations[subject] = u32(generation)
         affected = []
-        for item in self.reference_order:
-            reference_id = json.loads(item)['reference_id']; value = json.loads(self.references[reference_id])
-            if value['event_id'] not in notice['canonical_mappings'] or value['status'] == 'released':
+        for index in range(min(notice['reference_epoch'], len(self.reference_order))):
+            reference_id = json.loads(self.reference_order[index])['reference_id']
+            value = json.loads(self.references[reference_id])
+            if value['event_id'] not in notice['canonical_mappings'] or value['status'] == 'released' or value.get('operation_sequence', 0) > notice['operation_sequence']:
                 continue
-            affected.append(reference_id)
-            self._remove_count(value)
-            value['status'] = 'unresolved' if notice['unresolved'] else 'finalized'
-            value['canonical_id'] = notice['canonical_mappings'][value['event_id']]
-            value['generation'] = generation; value['request_id'] = notice['request_id']
-            if not notice['unresolved']:
+            affected.append(reference_id); self._remove_count(value)
+            approved = not notice['unresolved'] and notice['certified_types'].get(value['event_id'], 'UNKNOWN') in self._types()
+            value.update(status='finalized' if approved else 'unresolved', canonical_id=notice['canonical_mappings'][value['event_id']] if approved else value['event_id'], generation=notice['generation'], request_id=notice['request_id'], authorization_id=notice['authorization_id'], operation_sequence=notice['operation_sequence'], certified_type=notice['certified_types'].get(value['event_id'], 'UNKNOWN'), superseded_by='')
+            if approved:
                 self._add_count(value['canonical_id'])
             self.references[reference_id] = encoded(value)
             append(self.history, {'operation': 'reference_applied', **value})
-        ack = {'request_id': notice['request_id'], 'generation': generation, 'status': 'unresolved' if notice['unresolved'] else 'finalized', 'operation_id': operation_id, 'fingerprint': fingerprint, 'references': affected}
+        ack = {'request_id': notice['request_id'], 'generation': notice['generation'], 'status': 'unresolved' if notice['unresolved'] else 'finalized', 'operation_id': operation_id, 'fingerprint': fingerprint, 'reference_count': len(affected), 'references_digest': digest(affected)}
         self.acknowledgements[operation_id] = encoded(ack)
+        self.latest_acknowledgements[notice['request_id']] = operation_id
         gl.get_contract_at(self.directory).emit(on='finalized').acknowledge(operation_id, encoded(ack))
 
     @gl.public.write
     def invalidate_identity(self, notice_json: str) -> None:
         notice = parse(notice_json); self._check_notice(notice, True)
-        subject = notice['subject_id']; generation = notice['generation']
-        if generation < int(self.generations.get(subject, u32(0))):
+        operation_id = notice['operation_id']
+        if operation_id in self.acknowledgements:
+            gl.get_contract_at(self.directory).emit(on='finalized').acknowledge(operation_id, self.acknowledgements[operation_id])
             return
-        self.restrictions[subject] = u32(max(generation, int(self.restrictions.get(subject, u32(0)))))
         for item in self.reference_order:
             reference_id = json.loads(item)['reference_id']; value = json.loads(self.references[reference_id])
-            if value['event_id'] not in notice['canonical_mappings'] or value['status'] in ('released', 'superseded'):
+            if value.get('authorization_id', '') != notice['authorization_id'] or value['status'] in ('released', 'superseded'):
                 continue
             self._remove_count(value)
             value.update(status='superseded', canonical_id=value['event_id'], superseded_by=notice['superseded_by'])
             self.references[reference_id] = encoded(value)
             append(self.history, {'operation': 'reference_superseded', **value})
-        ack = {'request_id': notice['request_id'], 'generation': generation, 'status': 'superseded', 'operation_id': notice['operation_id']}
-        self.acknowledgements[notice['operation_id']] = encoded(ack)
-        gl.get_contract_at(self.directory).emit(on='finalized').acknowledge(notice['operation_id'], encoded(ack))
+        ack = {'request_id': notice['request_id'], 'generation': notice['generation'], 'status': 'superseded', 'operation_id': operation_id}
+        self.acknowledgements[operation_id] = encoded(ack)
+        gl.get_contract_at(self.directory).emit(on='finalized').acknowledge(operation_id, encoded(ack))
 
     @gl.public.view
     def get_configuration(self) -> dict:
@@ -318,7 +332,8 @@ class ReleaseEvidence(gl.Contract):
 
     @gl.public.view
     def get_acknowledgement(self, operation_id: str) -> dict:
-        return json.loads(self.acknowledgements[operation_id]) if operation_id in self.acknowledgements else {}
+        op = self.latest_acknowledgements.get(operation_id[len('delivery:'):], operation_id) if operation_id.startswith('delivery:') else operation_id
+        return json.loads(self.acknowledgements[op]) if op in self.acknowledgements else {}
 
     @gl.public.view
     def get_history(self, offset: int, limit: int) -> list:
@@ -328,4 +343,4 @@ class ReleaseEvidence(gl.Contract):
         return 'release_evidence'
 
     def _types(self) -> list:
-        return ['release', 'security_incident', 'operational_notice']
+        return ['release', 'operational_notice']

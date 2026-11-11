@@ -2,4 +2,4 @@
         return 'release_evidence'
 
     def _types(self) -> list:
-        return ['release', 'security_incident', 'operational_notice']
+        return ['release', 'operational_notice']

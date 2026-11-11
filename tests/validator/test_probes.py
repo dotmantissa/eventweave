@@ -15,7 +15,7 @@ def test_independent_validator_accepts_grounded_vector(assessed):
     system,_,_=assessed;assert probe(system)
 
 @pytest.mark.synthetic
-@pytest.mark.parametrize('attack',['wrong_verdict','omitted_exception','forged_span','changed_source','injection'])
+@pytest.mark.parametrize('attack',['wrong_verdict','omitted_exception','forged_span','changed_source','independent_evidence_gap'])
 def test_validator_refuses_materially_wrong_proposal(assessed,attack):
     system,r,answer=assessed;vm=system.chain.vms[system.court];proposal=copy.deepcopy(vm._captured_validators[-1][0])
     if attack=='wrong_verdict':proposal['decision']='DISTINCT';proposal['vector']['interval']='DISTINCT'
@@ -24,7 +24,7 @@ def test_validator_refuses_materially_wrong_proposal(assessed,attack):
     if attack=='forged_span':proposal['witnesses']['issuer']=['invented.span','another.invention']
     if attack=='changed_source':
         vm._web_mocks.clear();vm.mock_web('.*',{'body':'Changed public bytes'})
-    if attack=='injection':
+    if attack=='independent_evidence_gap':
         # A valid JSON proposal demands SAME while the independent participant derives an evidence gap.
         vm._llm_mocks.clear();answer['vector']={a:'UNKNOWN' for a in ATTRS};answer['exception']='EVIDENCE_GAP';vm.mock_llm('.*',encode(answer))
     assert not probe(system,proposal)

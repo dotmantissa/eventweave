@@ -1,0 +1,10 @@
+{
+  "classification": "Controlled adversarial verification fixture; no actual customer or incident",
+  "issuer": "EventWeave controlled verifier",
+  "place": "Isolated example service",
+  "occurrence_type": "operational_notice",
+  "interval_start": "2026-11-02T12:00:00Z",
+  "interval_end": "2026-11-02T12:00:00Z",
+  "official_reference": "CONTROLLED-NOTICE-002",
+  "statement": "This fixture represents the second simulated notice, on a different day and with a different official reference. The two notices are distinct."
+}

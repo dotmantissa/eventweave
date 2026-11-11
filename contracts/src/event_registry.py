@@ -53,7 +53,7 @@ class EventRegistry(gl.Contract):
         value['principal'] = address(value['principal'])
         for key in ('url_prefix', 'evidence_url'):
             text(value[key], 2048)
-            if not value[key].startswith('https://'):
+            if not https_channel(value[key], value[key]):
                 fail('Authority URLs require HTTPS')
         hash_text(value['evidence_hash']); number(value['evidence_bytes'], MAX_SOURCE_BYTES)
         if value['evidence_bytes'] < 1:
@@ -77,6 +77,7 @@ class EventRegistry(gl.Contract):
             fail('Invalid descriptor fields')
         for key in ('event_id', 'schema_id', 'issuer', 'place', 'official_reference'):
             text(value[key])
+        identifier(value['event_id']); identifier(value['schema_id'])
         text(value['title'], 180); number(value['schema_revision'])
         start = timestamp(value['interval_start']); end = timestamp(value['interval_end'])
         if end < start or value['occurrence_type'] not in KINDS:
@@ -91,7 +92,7 @@ class EventRegistry(gl.Contract):
             fail('Authority is quarantined')
         if source['scope'] != schema['scope'] or authority['scope'] != schema['scope'] or source['channel'] != authority['channel']:
             fail('Source scope or channel mismatch')
-        if not source['url'].startswith(authority['url_prefix']):
+        if not https_channel(source['url'], authority['url_prefix']):
             fail('Source is outside configured authority channel')
         request_digest = digest(value)
         key = value['event_id']
@@ -103,6 +104,8 @@ class EventRegistry(gl.Contract):
         source_key = source['record_id'] + ':' + source['revision']
         if source_key in self.source_index:
             fail('Source revision already registered; use its original event')
+        if int(self.count) >= MAX_HISTORY:
+            fail('Deployment record capacity reached')
         value.update(owner=sender, descriptor_digest=request_digest, status='pending', authority_revision=authority['revision'])
         self.events[key] = encoded(value)
         self.source_index[source_key] = key
@@ -120,7 +123,7 @@ class EventRegistry(gl.Contract):
             fail('Only original attesting principal may revise its public source')
         if original['quarantined'] or self.quarantines.get(source['authority_id'], False):
             fail('Authority is quarantined')
-        if source['record_id'] != original['source']['record_id'] or source['scope'] != original['source']['scope'] or source['scope'] != authority['scope'] or source['channel'] != authority['channel'] or not source['url'].startswith(authority['url_prefix']):
+        if source['record_id'] != original['source']['record_id'] or source['scope'] != original['source']['scope'] or source['scope'] != authority['scope'] or source['channel'] != authority['channel'] or not https_channel(source['url'], authority['url_prefix']):
             fail('Successor source must retain record, scope and configured authority channel')
         if source == original['source']:
             return

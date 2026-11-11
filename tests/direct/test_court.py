@@ -23,9 +23,12 @@ def test_deadline_and_retries(system,event_factory,request_factory):
     event_factory('a');event_factory('b');r=request_factory('a','b');c=system.chain;key=r['envelope']['request_id']
     c.semantic(system.court,key,vector={a:'UNKNOWN' for a in ATTRS})
     c.call(system.court,'assess',key);c.call(system.court,'assess',key)
-    successor=request_factory('a','b',generation=2);third=request_factory('a','b',generation=3)
-    with pytest.raises(Exception,match='Three requests'):request_factory('a','b',generation=4)
-    successor=third;c.vms[system.court]._datetime='2026-11-13T10:00:00Z';c.call(system.court,'assess',successor['envelope']['request_id']);assert c.call(system.court,'get_result',successor['envelope']['request_id'])['status']=='timeout'
+    successor=request_factory('a','b',generation=2)
+    assert c.call(system.court,'get_generation',r['envelope']['subject_id'],system.incident)==1
+    with pytest.raises(Exception,match='pending'):request_factory('a','b',generation=2,request_id='parallel')
+    c.call(system.court,'cancel_request',successor['envelope']['request_id'])
+    replacement=request_factory('a','b',generation=2,request_id='replacement')
+    c.vms[system.court]._datetime='2026-11-13T10:00:00Z';c.call(system.court,'assess','replacement');assert c.call(system.court,'get_result','replacement')['status']=='timeout'
 
 @pytest.mark.synthetic
 def test_expired_assessment_and_committed_source_outage_are_unresolved(system,event_factory,request_factory):

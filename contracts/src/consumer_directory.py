@@ -18,11 +18,23 @@ class ConsumerDirectory(gl.Contract):
     consumer_acks: TreeMap[str, str]
     pair_consumers: TreeMap[str, str]
     revocation_notices: TreeMap[str, str]
+    notices: TreeMap[str, str]
+    latest_deliveries: TreeMap[str, str]
+    active_authorizations: TreeMap[str, str]
+    causes: TreeMap[str, str]
+    proof_index: TreeMap[str, str]
+    operation_sequence: u32
+    event_relation_counts: TreeMap[str, u32]
+    event_relations: TreeMap[str, str]
+    event_alias_counts: TreeMap[str, u32]
+    event_aliases: TreeMap[str, str]
+    invalidated_relations: TreeMap[str, bool]
 
     def __init__(self, court_address: str, registry_address: str):
         self.owner = gl.message.sender_address
         self.court = Address(court_address)
         self.registry = Address(registry_address)
+        self.operation_sequence = u32(0)
 
     def _node(self, scope: str, event_id: str) -> str:
         return scope + ':' + event_id
@@ -38,7 +50,7 @@ class ConsumerDirectory(gl.Contract):
                 fail('Certificate binding mismatch')
         if live['quarantined'] or live['status'] == 'superseded':
             fail('Certificate is stale or quarantined')
-        generation = gl.get_contract_at(self.court).view().get_generation(certificate['subject_id'])
+        generation = gl.get_contract_at(self.court).view().get_generation(certificate['subject_id'], certificate['consumer_address'])
         if generation != certificate['generation']:
             fail('Certificate generation is stale')
         records = []
@@ -67,27 +79,23 @@ class ConsumerDirectory(gl.Contract):
         if certificate.get('controlling_rules') == ['DEADLINE']:
             certificate['status'] = 'timeout'
         self.certificates[request_id] = encoded(certificate)
+        for event_id in (certificate['left'], certificate['right']):
+            node = self._node(certificate['scope'], event_id)
+            count = int(self.event_relation_counts.get(node, u32(0)))
+            self.event_relations[node + ':' + str(count)] = request_id
+            self.event_relation_counts[node] = u32(count + 1)
         key = pair_key(certificate['left'], certificate['right'], certificate['scope'])
         consumers = json.loads(self.pair_consumers.get(key, '{}'))
         if certificate['consumer_address'] not in consumers and len(consumers) >= 8:
             fail('At most eight consumer bindings per pair')
-        prior_consumer_relation = consumers.get(certificate['consumer_address'], '')
-        if certificate['decision'] == 'DISTINCT' and prior_consumer_relation:
-            prior_consumer = json.loads(self.certificates[prior_consumer_relation])
-            if prior_consumer['decision'] == 'SAME':
-                self._revoke_certificate(prior_consumer, request_id, self._members(certificate['scope'], certificate['left']))
         consumers[certificate['consumer_address']] = request_id
         self.pair_consumers[key] = encoded(consumers)
-        if key in self.edges:
-            prior = json.loads(self.certificates[self.edges[key]])
-            if prior['generation'] >= certificate['generation']:
-                fail('Reordered stale certificate')
         self.edges[key] = request_id
         if certificate['decision'] == 'DISTINCT':
             self.distinct_index[key] = request_id
             if certificate['right'] in self._members(certificate['scope'], certificate['left']):
                 self._quarantine_component(certificate['scope'], certificate['left'], request_id)
-        elif key in self.distinct_index:
+        elif self._distinct(key):
             # A contrary SAME never silently removes a finalized non merge edge.
             certificate['status'] = 'quarantined'
             self.certificates[request_id] = encoded(certificate)
@@ -102,7 +110,7 @@ class ConsumerDirectory(gl.Contract):
             fail('Invalid merge proof fields')
         for key in ('operation_id', 'left', 'right', 'scope'):
             text(proof[key], 512)
-        if not isinstance(proof['relations'], list) or len(proof['relations']) > 15:
+        if not isinstance(proof['relations'], list) or not 1 <= len(proof['relations']) <= 15:
             fail('At most fifteen complete pair certificates')
         if proof['left'] == proof['right']:
             fail('A merge requires two distinct records')
@@ -112,6 +120,9 @@ class ConsumerDirectory(gl.Contract):
             expected_scope = 'scope:' + digest({'scope': policy['scope'], 'policy_id': record['schema_id'], 'policy_revision': record['schema_revision']})
             if proof['scope'] != expected_scope:
                 fail('Merge scope is incompatible with the records')
+        sender = str(gl.message.sender_address).lower()
+        if not any(r in self.certificates and json.loads(self.certificates[r])['owner'] == sender for r in proof['relations']):
+            fail('Only an assessed consumer owner may propose a merge')
         fingerprint = digest(proof)
         if proof['operation_id'] in self.operations:
             stored = json.loads(self.operations[proof['operation_id']])
@@ -140,7 +151,7 @@ class ConsumerDirectory(gl.Contract):
                 supplied[key] = certificate
             # Inspect every non merge edge before considering affirmative support.
             for key in sorted(required):
-                if key in self.distinct_index:
+                if self._distinct(key):
                     witness = self.distinct_index[key]
                     status = 'refused'
                     break
@@ -151,10 +162,18 @@ class ConsumerDirectory(gl.Contract):
                     for key in sorted(required):
                         certificate = supplied[key]
                         self._live(certificate)
-                        if self.edges.get(key, '') != certificate['request_id'] or certificate['status'] != 'finalized' or certificate['decision'] != 'SAME' or not certificate['coverage'] or certificate['unresolved'] or any(certificate['vector'][a] != 'SAME' for a in ATTRIBUTES):
+                        if certificate['status'] != 'finalized' or certificate['decision'] != 'SAME' or not certificate['coverage'] or certificate['unresolved'] or any(certificate['vector'][a] != 'SAME' for a in ATTRIBUTES):
                             status = 'unresolved'
                             break
         result = {**proof, 'fingerprint': fingerprint, 'members': combined, 'status': status, 'witness': witness, 'canonical_id': min(combined)}
+        if status != 'pending':
+            return result
+        semantic = digest({'scope': proof['scope'], 'members': combined, 'relations': sorted(proof['relations'])})
+        if semantic in self.proof_index:
+            prior_id = self.proof_index[semantic]
+            if prior_id != proof['operation_id']:
+                fail('This complete proof already has an operation')
+        self.proof_index[semantic] = proof['operation_id']
         self.operations[proof['operation_id']] = encoded(result)
         if witness:
             self.witnesses[proof['operation_id']] = witness
@@ -179,10 +198,10 @@ class ConsumerDirectory(gl.Contract):
                 fail('Cluster is quarantined')
             for right in members[i + 1:]:
                 key = pair_key(left, right, scope)
-                if key in self.distinct_index:
+                if self._distinct(key):
                     fail('Finalized DISTINCT witness refuses merge')
-                relation = self.edges.get(key, '')
-                if relation not in result['relations']:
+                relation = next((r for r in result['relations'] if pair_key(json.loads(self.certificates[r])['left'], json.loads(self.certificates[r])['right'], scope) == key), '')
+                if not relation:
                     fail('Proof is stale')
                 certificate = json.loads(self.certificates[relation]); self._live(certificate)
                 if certificate['decision'] != 'SAME' or certificate['status'] != 'finalized':
@@ -196,10 +215,93 @@ class ConsumerDirectory(gl.Contract):
             self.alias_generation[node] = u32(generation)
             alias = {'event_id': event_id, 'canonical_id': canonical_id, 'members': members, 'scope': scope, 'operation_id': operation_id, 'generation': generation, 'status': 'finalized'}
             self.aliases[node] = encoded(alias)
-            append(self.alias_history, alias)
+            self._record_alias(alias)
         result['status'] = 'finalized'
         self.operations[operation_id] = encoded(result)
         append(self.history, {'operation': 'merge_finalized', 'operation_id': operation_id, 'canonical_id': canonical_id})
+
+    def _record_alias(self, alias: dict):
+        append(self.alias_history, alias)
+        node = self._node(alias['scope'], alias['event_id'])
+        count = int(self.event_alias_counts.get(node, u32(0)))
+        self.event_aliases[node + ':' + str(count)] = encoded(alias)
+        self.event_alias_counts[node] = u32(count + 1)
+
+    @gl.public.view
+    def get_event_relations(self, event_id: str, scope: str, offset: int, limit: int) -> list:
+        number(offset); number(limit, 50)
+        if not limit:
+            fail('Page limit starts at one')
+        node = self._node(scope, event_id)
+        return [json.loads(self.certificates[self.event_relations[node + ':' + str(i)]]) for i in range(offset, min(offset + limit, int(self.event_relation_counts.get(node, u32(0)))))]
+
+    @gl.public.view
+    def get_event_alias_history(self, event_id: str, scope: str, offset: int, limit: int) -> list:
+        number(offset); number(limit, 50)
+        if not limit:
+            fail('Page limit starts at one')
+        node = self._node(scope, event_id)
+        return [json.loads(self.event_aliases[node + ':' + str(i)]) for i in range(offset, min(offset + limit, int(self.event_alias_counts.get(node, u32(0)))))]
+
+    def _active(self, node: str) -> list:
+        return sorted(set(op for pending in json.loads(self.active_authorizations.get(node, '{}')).values() for op in pending))
+
+    def _distinct(self, key: str) -> bool:
+        if key not in self.distinct_index:
+            return False
+        certificate = json.loads(self.certificates[self.distinct_index[key]])
+        try:
+            self._live(certificate)
+            return certificate['status'] == 'finalized'
+        except Exception:
+            return False
+
+    def _proof(self, scope: str, event_id: str) -> list:
+        members = self._members(scope, event_id)
+        if any(self.quarantined.get(self._node(scope, r), False) for r in members):
+            fail('Identity is quarantined')
+        if len(members) == 1:
+            return []
+        alias = json.loads(self.aliases[self._node(scope, event_id)])
+        operation = json.loads(self.operations[alias['operation_id']])
+        required = {pair_key(a, b, scope) for i, a in enumerate(members) for b in members[i + 1:]}
+        supplied = {}
+        for relation_id in operation['relations']:
+            cert = json.loads(self.certificates[relation_id]); self._live(cert)
+            key = pair_key(cert['left'], cert['right'], scope)
+            if cert['status'] != 'finalized' or cert['decision'] != 'SAME' or not cert['coverage'] or cert['unresolved'] or any(cert['vector'][a] != 'SAME' for a in ATTRIBUTES) or self._distinct(key):
+                fail('Complete cluster proof is stale')
+            supplied[key] = relation_id
+        if set(supplied) != required:
+            fail('Complete cluster proof is missing')
+        return sorted(supplied.values())
+
+    def _publish(self, certificate: dict, mapping: dict, types: dict, proofs: list, recovery: bool = False) -> str:
+        versions = {r: int(self.alias_generation.get(self._node(certificate['scope'], r), u32(0))) for r in mapping}
+        sources = {r: digest(gl.get_contract_at(self.registry).view().get_identity(r)['source']) for r in mapping}
+        references = gl.get_contract_at(Address(certificate['consumer_address'])).view().get_stats()['references']
+        payload = {**certificate, 'canonical_mappings': mapping, 'certified_types': types, 'proofs': sorted(set(proofs)), 'alias_versions': versions, 'source_hashes': sources, 'reference_epoch': references, 'recovery': recovery, 'directory': str(gl.message.contract_address).lower()}
+        operation_id = 'delivery:' + digest(payload)
+        if operation_id not in self.notices:
+            self.operation_sequence = u32(int(self.operation_sequence) + 1)
+            notice = {**payload, 'operation_id': operation_id, 'operation_sequence': int(self.operation_sequence), 'authorization_id': operation_id}
+            self.notices[operation_id] = encoded(notice)
+            for r in mapping:
+                node = self._node(certificate['scope'], r)
+                bindings = json.loads(self.active_authorizations.get(node, '{}'))
+                if certificate['consumer_address'] not in bindings and len(bindings) >= 8:
+                    fail('At most eight consumers per record')
+                pending = bindings.get(certificate['consumer_address'], [])
+                pending.append(operation_id)
+                bindings[certificate['consumer_address']] = pending
+                self.active_authorizations[node] = encoded(bindings)
+            append(self.history, {'operation': 'alias_published', 'request_id': certificate['request_id'], 'operation_id': operation_id})
+        notice = json.loads(self.notices[operation_id])
+        if not self.is_notice_current(operation_id):
+            fail('Application operation is stale or revoked')
+        self.latest_deliveries[certificate['request_id']] = operation_id
+        gl.get_contract_at(Address(certificate['consumer_address'])).emit(on='finalized').apply_identity(encoded(notice))
+        return operation_id
 
     @gl.public.write
     def publish_alias(self, request_id: str) -> None:
@@ -208,49 +310,67 @@ class ConsumerDirectory(gl.Contract):
         certificate = json.loads(self.certificates[request_id]); self._live(certificate)
         if certificate['status'] in ('quarantined', 'superseded'):
             fail('Certificate cannot authorize alias reuse')
-        mapping = {}
+        mapping = {}; proofs = [request_id]; types = dict(certificate['certified_types'])
         for event_id in (certificate['left'], certificate['right']):
             identity = self.get_identity(event_id, certificate['scope'])
             if identity['status'] == 'quarantined':
                 fail('Identity is quarantined')
             if certificate['decision'] == 'SAME' and (identity['status'] != 'finalized' or certificate['right'] not in identity['members']):
                 fail('SAME reuse requires a complete finalized cluster proof')
-            mapping[event_id] = identity['canonical_id']
-        notice = {**certificate, 'canonical_mappings': mapping, 'operation_id': 'delivery:' + request_id, 'directory': str(gl.message.contract_address).lower()}
-        gl.get_contract_at(Address(certificate['consumer_address'])).emit(on='finalized').apply_identity(encoded(notice))
-        append(self.history, {'operation': 'alias_published', 'request_id': request_id, 'generation': certificate['generation']})
+            members = identity['members'] if not certificate['unresolved'] else [event_id]
+            if not certificate['unresolved']:
+                proofs += self._proof(certificate['scope'], event_id)
+            for member in members:
+                mapping[member] = identity['canonical_id'] if not certificate['unresolved'] else member
+        for relation in sorted(set(proofs)):
+            cert = json.loads(self.certificates[relation])
+            for r, kind in cert['certified_types'].items():
+                if r in types and types[r] != kind and not certificate['unresolved']:
+                    fail('Cluster has conflicting certified attributes')
+                types[r] = kind
+        self._publish(certificate, mapping, types, proofs)
 
-    def _quarantine_component(self, scope: str, event_id: str, successor_id: str):
+    def _revoke_notice(self, operation_id: str, successor_id: str):
+        if operation_id in self.revocation_notices:
+            return
+        notice = json.loads(self.notices[operation_id])
+        notice.update(status='superseded', superseded_by=successor_id)
+        self.notices[operation_id] = encoded(notice)
+        invalidation = {**notice, 'operation_id': 'invalidate:' + operation_id}
+        self.revocation_notices[operation_id] = encoded(invalidation)
+        gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(invalidation))
+
+    def _quarantine_component(self, scope: str, event_id: str, cause_id: str):
         members = self._members(scope, event_id)
         for member in members:
             node = self._node(scope, member)
+            causes = json.loads(self.causes.get(node, '[]'))
+            if cause_id not in causes:
+                causes.append(cause_id); self.causes[node] = encoded(causes)
             self.quarantined[node] = True
             if node in self.aliases:
-                alias = json.loads(self.aliases[node]); alias.update(status='superseded', superseded_by=successor_id)
-                self.aliases[node] = encoded(alias); append(self.alias_history, alias)
-            # Original descriptors remain untouched; reuse returns original IDs while restricted.
+                alias = json.loads(self.aliases[node])
+                if alias['status'] != 'superseded':
+                    alias.update(status='superseded', superseded_by=cause_id)
+                    self.aliases[node] = encoded(alias); self._record_alias(alias)
             self.canonical_ids[node] = member
-        # Retire every affected SAME relation, including independently owned consumers.
-        # The bounded reverse index covers at most fifteen pairs and eight consumers per pair.
+            for operation_id in self._active(node):
+                notice = json.loads(self.notices[operation_id])
+                for relation in notice['proofs']:
+                    cert = json.loads(self.certificates[relation])
+                    if cert['decision'] == 'SAME' and cert['left'] in members and cert['right'] in members:
+                        cert.update(status='superseded', superseded_by=cause_id)
+                        self.certificates[relation] = encoded(cert)
+                self._revoke_notice(operation_id, cause_id)
         for i, left in enumerate(members):
             for right in members[i + 1:]:
                 key = pair_key(left, right, scope)
-                consumers = json.loads(self.pair_consumers.get(key, '{}'))
-                for relation_id in consumers.values():
-                    certificate = json.loads(self.certificates[relation_id])
-                    if certificate['decision'] == 'SAME':
-                        self._revoke_certificate(certificate, successor_id, members)
-        append(self.history, {'operation': 'component_quarantined', 'event_id': event_id, 'scope': scope, 'successor_id': successor_id})
-
-    def _revoke_certificate(self, certificate: dict, successor_id: str, members: list):
-        relation_id = certificate['request_id']
-        if relation_id in self.revocation_notices:
-            return
-        certificate.update(status='superseded', superseded_by=successor_id)
-        self.certificates[relation_id] = encoded(certificate)
-        notice = {**certificate, 'canonical_mappings': {r: r for r in members}, 'operation_id': 'invalidate:' + relation_id, 'directory': str(gl.message.contract_address).lower()}
-        self.revocation_notices[relation_id] = encoded(notice)
-        gl.get_contract_at(Address(certificate['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(notice))
+                for relation_id in json.loads(self.pair_consumers.get(key, '{}')).values():
+                    cert = json.loads(self.certificates[relation_id])
+                    if cert['decision'] == 'SAME':
+                        cert.update(status='superseded', superseded_by=cause_id)
+                        self.certificates[relation_id] = encoded(cert)
+        append(self.history, {'operation': 'component_quarantined', 'event_id': event_id, 'scope': scope, 'successor_id': cause_id})
 
     @gl.public.write
     def invalidate_relation(self, relation_id: str, successor_id: str) -> None:
@@ -258,59 +378,146 @@ class ConsumerDirectory(gl.Contract):
             fail('Only finalized court messages may invalidate relations')
         if relation_id not in self.certificates:
             fail('Unknown finalized relation')
-        if relation_id in self.revocation_notices:
-            notice = json.loads(self.revocation_notices[relation_id])
-            gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(notice))
+        if self.invalidated_relations.get(relation_id, False):
             return
-        certificate = json.loads(self.certificates[relation_id])
+        self.invalidated_relations[relation_id] = True
+        cert = json.loads(self.certificates[relation_id])
         live = gl.get_contract_at(self.court).view().get_result(relation_id)
         if not live['quarantined'] and live['status'] != 'superseded':
             fail('No court revocation')
-        self._quarantine_component(certificate['scope'], certificate['left'], successor_id)
-        self._revoke_certificate(certificate, successor_id, self._members(certificate['scope'], certificate['left']))
+        already_retired = cert['status'] == 'superseded'
+        cert.update(status='superseded', superseded_by=successor_id)
+        self.certificates[relation_id] = encoded(cert)
+        key = pair_key(cert['left'], cert['right'], cert['scope'])
+        if cert['decision'] == 'DISTINCT':
+            if self.distinct_index.get(key, '') == relation_id:
+                del self.distinct_index[key]
+            for member in (cert['left'], cert['right']):
+                for op in self._active(self._node(cert['scope'], member)):
+                    if relation_id in json.loads(self.notices[op])['proofs']:
+                        self._revoke_notice(op, successor_id)
+            return
+        # A repeated court callback after recovery must not quarantine the recovered component again.
+        node = self._node(cert['scope'], cert['left'])
+        if not already_retired and len(self._members(cert['scope'], cert['left'])) > 1 and (not self.quarantined.get(node, False) or successor_id not in json.loads(self.causes.get(node, '[]'))):
+            self._quarantine_component(cert['scope'], cert['left'], successor_id or relation_id)
 
     @gl.public.write
     def retry_invalidation(self, relation_id: str) -> None:
-        if relation_id not in self.revocation_notices:
-            fail('No finalized invalidation to retry')
-        notice = json.loads(self.revocation_notices[relation_id])
-        gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(notice))
+        operations = [relation_id] if relation_id in self.revocation_notices else []
+        if not operations:
+            # Legacy request IDs still resolve active authorization notices for recovery clients.
+            for member in (json.loads(self.certificates[relation_id])['left'], json.loads(self.certificates[relation_id])['right']):
+                for op in self._active(self._node(json.loads(self.certificates[relation_id])['scope'], member)):
+                    if op in self.revocation_notices and relation_id in json.loads(self.notices[op])['proofs']:
+                        operations.append(op)
+        for op in sorted(set(operations)):
+            notice = json.loads(self.revocation_notices[op])
+            gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(notice))
 
     @gl.public.write
     def recover_component(self, scope: str, event_id: str, correction_id: str) -> None:
         if correction_id not in self.certificates:
             fail('Recovery needs delivered correction')
         certificate = json.loads(self.certificates[correction_id]); self._live(certificate)
-        if certificate['scope'] != scope or certificate['decision'] != 'DISTINCT' or certificate['status'] != 'finalized' or event_id not in (certificate['left'], certificate['right']):
-            fail('Recovery requires current finalized DISTINCT')
         members = self._members(scope, event_id)
-        # Conservative split: all original histories become singleton identities. Old SAME edges stay unusable.
+        if certificate['scope'] != scope or certificate['decision'] != 'DISTINCT' or certificate['status'] != 'finalized' or not all(r in members for r in (certificate['left'], certificate['right'])) or not self.quarantined.get(self._node(scope, event_id), False):
+            fail('Recovery requires current finalized DISTINCT bound to the quarantined component')
+        causes = sorted(set(c for member in members for c in json.loads(self.causes.get(self._node(scope, member), '[]'))))
+        for cause in causes:
+            if cause == correction_id:
+                continue
+            old = gl.get_contract_at(self.court).view().get_result(cause)
+            if old['superseded_by'] != correction_id or old['subject_id'] != certificate['subject_id']:
+                fail('Correction does not resolve every quarantine cause')
+        restore = {}
+        for member in members:
+            for op in self._active(self._node(scope, member)):
+                consumer = json.loads(self.notices[op])['consumer_address']
+                if op not in self.revocation_notices or not self.consumer_acks.get('invalidate:' + op, ''):
+                    fail('Outstanding consumer invalidation must be acknowledged before recovery')
+                notice = json.loads(self.notices[op])
+                item = restore.get(consumer, {'certificate': notice, 'types': {}, 'members': set()})
+                for r in notice['canonical_mappings']:
+                    if r in members:
+                        record = gl.get_contract_at(self.registry).view().get_identity(r)
+                        corrected_type = certificate['certified_types'].get(r, '')
+                        if record['quarantined'] or (not corrected_type and digest(record['source']) != notice['source_hashes'][r]):
+                            fail('Changed component evidence requires assessment before recovery')
+                        item['types'][r] = corrected_type or notice['certified_types'][r]; item['members'].add(r)
+                restore[consumer] = item
         for member in members:
             node = self._node(scope, member)
             self.memberships[node] = encoded([member]); self.canonical_ids[node] = member
-            self.quarantined[node] = False
+            self.quarantined[node] = False; self.causes[node] = '[]'
             self.alias_generation[node] = u32(int(self.alias_generation.get(node, u32(0))) + 1)
+            alias = {'event_id': member, 'canonical_id': member, 'members': [member], 'scope': scope, 'operation_id': 'recovery:' + correction_id, 'generation': int(self.alias_generation[node]), 'status': 'finalized'}
+            self.aliases[node] = encoded(alias); self._record_alias(alias)
+        for item in restore.values():
+            prior = item['certificate']
+            cert = {k: prior[k] for k in ENVELOPE_KEYS}
+            cert.update(left=prior['left'], right=prior['right'], scope=scope, decision='DISTINCT', unresolved=False, status='finalized', superseded_by='', recovery_correction=correction_id)
+            # Restore certified original occurrences as singletons, with no old SAME reuse permission.
+            self._publish(cert, {r: r for r in sorted(item['members'])}, item['types'], [correction_id], True)
         append(self.history, {'operation': 'component_recovered', 'scope': scope, 'members': members, 'correction_id': correction_id})
 
     @gl.public.write
     def acknowledge(self, operation_id: str, acknowledgement_json: str) -> None:
-        acknowledgement = parse(acknowledgement_json)
-        request_id = acknowledgement.get('request_id', '')
-        if request_id not in self.certificates:
+        ack = parse(acknowledgement_json)
+        op = operation_id[len('invalidate:'):] if operation_id.startswith('invalidate:') else operation_id
+        if op not in self.notices:
             fail('Unknown acknowledgement')
-        certificate = json.loads(self.certificates[request_id])
-        if str(gl.message.sender_address).lower() != certificate['consumer_address'] or acknowledgement.get('generation') != certificate['generation']:
-            fail('Only bound consumer may acknowledge current generation')
-        value = encoded(acknowledgement)
+        notice = json.loads(self.notices[op])
+        if str(gl.message.sender_address).lower() != notice['consumer_address'] or ack.get('generation') != notice['generation'] or ack.get('request_id') != notice['request_id'] or ack.get('operation_id') != operation_id:
+            fail('Only bound consumer may acknowledge exact operation')
+        value = encoded(ack)
         if operation_id in self.consumer_acks and self.consumer_acks[operation_id] != value:
             fail('Conflicting acknowledgement')
         self.consumer_acks[operation_id] = value
+        if not operation_id.startswith('invalidate:'):
+            for r in notice['canonical_mappings']:
+                node = self._node(notice['scope'], r)
+                bindings = json.loads(self.active_authorizations.get(node, '{}'))
+                pending = bindings.get(notice['consumer_address'], [])
+                bindings[notice['consumer_address']] = [p for p in pending if int(json.loads(self.notices[p])['operation_sequence']) >= notice['operation_sequence']]
+                self.active_authorizations[node] = encoded(bindings)
+
+    @gl.public.view
+    def get_notice(self, operation_id: str) -> dict:
+        if operation_id.startswith('invalidate:'):
+            return json.loads(self.revocation_notices[operation_id[len('invalidate:'):]])
+        return json.loads(self.notices[operation_id])
+
+    @gl.public.view
+    def is_notice_current(self, operation_id: str) -> bool:
+        if operation_id not in self.notices:
+            return False
+        notice = json.loads(self.notices[operation_id])
+        if notice['status'] == 'superseded':
+            return False
+        try:
+            for relation in notice['proofs']:
+                self._live(json.loads(self.certificates[relation]))
+            for r, canonical in notice['canonical_mappings'].items():
+                node = self._node(notice['scope'], r)
+                record = gl.get_contract_at(self.registry).view().get_identity(r)
+                if record['quarantined'] or digest(record['source']) != notice['source_hashes'][r] or self.quarantined.get(node, False) or (not notice['unresolved'] and self.canonical_ids.get(node, r) != canonical) or int(self.alias_generation.get(node, u32(0))) != notice['alias_versions'][r]:
+                    return False
+            return True
+        except Exception:
+            return False
 
     @gl.public.view
     def get_identity(self, event_id: str, scope: str) -> dict:
         gl.get_contract_at(self.registry).view().get_identity(event_id)
         node = self._node(scope, event_id)
-        return {'event_id': event_id, 'canonical_id': self.canonical_ids.get(node, event_id), 'members': self._members(scope, event_id), 'scope': scope, 'generation': int(self.alias_generation.get(node, u32(0))), 'status': 'quarantined' if self.quarantined.get(node, False) else ('finalized' if node in self.aliases else 'pending')}
+        status = 'quarantined' if self.quarantined.get(node, False) else ('finalized' if node in self.aliases else 'pending')
+        if status == 'finalized' and len(self._members(scope, event_id)) > 1:
+            try:
+                self._proof(scope, event_id)
+            except Exception:
+                status = 'unresolved'
+        return {'event_id': event_id, 'canonical_id': self.canonical_ids.get(node, event_id) if status == 'finalized' else event_id, 'members': self._members(scope, event_id), 'scope': scope, 'generation': int(self.alias_generation.get(node, u32(0))), 'status': status}
 
     @gl.public.view
     def get_acknowledgement(self, request_id: str) -> dict:
@@ -318,7 +525,8 @@ class ConsumerDirectory(gl.Contract):
 
     @gl.public.view
     def get_consumer_ack(self, operation_id: str) -> dict:
-        return json.loads(self.consumer_acks[operation_id]) if operation_id in self.consumer_acks else {}
+        op = self.latest_deliveries.get(operation_id[len('delivery:'):], operation_id) if operation_id.startswith('delivery:') else operation_id
+        return json.loads(self.consumer_acks[op]) if op in self.consumer_acks else {}
 
     @gl.public.view
     def get_history(self, offset: int, limit: int) -> list:
@@ -345,7 +553,8 @@ class ConsumerDirectory(gl.Contract):
         if request_id not in self.certificates:
             return False
         try:
-            self._live(json.loads(self.certificates[request_id]))
-            return True
+            certificate = json.loads(self.certificates[request_id])
+            self._live(certificate)
+            return certificate['status'] not in ('quarantined', 'superseded')
         except Exception:
             return False
