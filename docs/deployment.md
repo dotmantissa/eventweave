@@ -29,12 +29,12 @@ settings. For a local packaged-function check, run `vercel build --prod`, inspec
 `vercel deploy --prebuilt --prod`. The active deployment manifest is explicitly
 included in the function; `.vercelignore` excludes environment files and keys.
 
-The included Vercel schedule runs reconciliation daily to fit the basic scheduler allowance. Interactive delivery state is read directly from the contracts. For continuous index and journal refresh, run `npm run worker` in a persistent service, or configure a more frequent authenticated Vercel schedule on a plan that supports it. A worker can inspect, schedule or reconcile transactions; it cannot author an identity verdict.
+The included Vercel schedule runs reconciliation daily to fit the basic scheduler allowance. Authenticated Activity polling also reconciles the current user’s due journal entries with fair progression and backoff. Interactive delivery state is read directly from the contracts. For continuous index and journal refresh, run `npm run worker` in a persistent service, or configure a more frequent authenticated Vercel schedule on a plan that supports it. A worker can inspect, schedule or reconcile transactions; it cannot author an identity verdict.
 
 ## Contract deployment
 
 ```sh
-npm run deploy:contracts -- --revision=3 --fresh-registry
+npm run deploy:contracts -- --revision=5 --fresh-registry
 ```
 
 Deployments are journaled before waiting for finalization. Resume with the same command and the same secure key sources. Existing successful operations are not repeated. A new revision archives the preceding address manifest. Constructor and consumer configuration bindings are explicit.
@@ -43,10 +43,10 @@ The current application manifest is `deployments/studionet.json`. Keep earlier m
 
 ## Recovery
 
-A browser prepares an operation before signing. The server stores the signer, nonce, exact payload digest and operation ID. If the browser or worker ends after broadcast, reconciliation searches the signer's transaction history and accepts only the exact matching transaction. It checks execution as well as protocol status. An accepted transaction is not finality proof.
+A browser initializes its wallet and switches chain before preparation. Unsigned preparation does not exclusively reserve a nonce; identical unbroadcast intents can resume. The signing provider checks the prepared nonce before asking for a signature. The server stores the signer, nonce, exact payload digest and operation ID. If the browser or worker ends after broadcast, reconciliation searches the signer's transaction history and accepts only the exact matching transaction. It checks execution as well as protocol status. An accepted transaction is not finality proof.
 
-Court delivery can be replayed with `retry_delivery`. Consumer delivery can be replayed with `publish_alias`. Revoked notices can be replayed with `retry_invalidation`. These methods retain the original certificate or revocation bindings. Consumers persist acknowledgements and reject conflicting, stale or restricted generations.
+Court delivery can be replayed with `retry_delivery`. Consumer delivery can be replayed with `retry_notice` for an exact operation ID. `publish_alias` creates a separately versioned operation when component mappings or the reservation set changes. Revoked notices can be replayed with `retry_invalidation`. These methods retain the original certificate or revocation bindings. Consumers persist acknowledgements and reject conflicting, stale or restricted generations.
 
-After a mistaken merge, obtain a newer delivered DISTINCT certificate, supersede the original relation, wait for invalidation, then recover the affected component and publish the successor notice. Original consumer references and source commitments remain attributed throughout. The web challenge flow exposes these actions.
+After a mistaken merge, obtain a newer delivered DISTINCT certificate, supersede the original relation, wait for every invalidation acknowledgement, then recover the exact affected component. Recovery restores every previously authorized consumer reference and can be repeated to replay failed restoration callbacks. A false DISTINCT can instead be superseded with a complete SAME certificate followed by a fresh merge proof. Original consumer references and source commitments remain attributed throughout. The web challenge flow exposes these actions.
 
 The deterministic index can be discarded and rebuilt from registry event order. Reconciliation also cycles through existing records to refresh alias state. Index search is advisory; cached rows never authorize consumer effects.

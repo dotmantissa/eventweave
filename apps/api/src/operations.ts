@@ -24,6 +24,7 @@ const methods: Record<string, string[]> = {
     "supersede_relation",
     "quarantine_request",
     "retry_delivery",
+    "cancel_request",
   ],
   directory: [
     "propose_merge",
@@ -31,6 +32,7 @@ const methods: Record<string, string[]> = {
     "publish_alias",
     "recover_component",
     "retry_invalidation",
+    "retry_notice",
   ],
   incident: ["register_reference", "release_hold"],
   release: ["register_reference", "release_hold"],
@@ -94,12 +96,13 @@ export async function prepareOperation(
       );
     return {
       operation_id: input.operation_id,
-      address: deployment[input.contract],
+      address: existing[0].contract_address || deployment[input.contract],
+      nonce: Number(existing[0].nonce),
     };
   }
   if (input.method === "assess") {
     const prior =
-      await sql()`SELECT COUNT(*)::integer AS count FROM operation_journal WHERE signer=${auth.signer} AND method='assess' AND args=${JSON.stringify(input.args)}::jsonb`;
+      await sql()`SELECT COUNT(*)::integer AS count FROM operation_journal WHERE signer=${auth.signer} AND contract_address=${deployment[input.contract]} AND method='assess' AND args=${JSON.stringify(input.args)}::jsonb AND transaction_hash IS NOT NULL`;
     if (prior[0].count >= 3)
       throw new HttpError(
         409,
@@ -107,6 +110,15 @@ export async function prepareOperation(
       );
   }
   const nonce = await chain().getCurrentNonce({ address: auth.signer });
+  // Unsigned preparation does not lock a chain nonce. Resume an identical intent.
+  const resumable =
+    await sql()`SELECT * FROM operation_journal WHERE user_id=${auth.user_id} AND signer=${auth.signer} AND nonce=${nonce} AND payload_digest=${payload_digest} AND transaction_hash IS NULL ORDER BY created_at DESC LIMIT 1`;
+  if (resumable.length)
+    return {
+      operation_id: resumable[0].operation_id,
+      address: resumable[0].contract_address,
+      nonce: Number(resumable[0].nonce),
+    };
   try {
     await sql()`INSERT INTO operation_journal(operation_id,user_id,signer,contract,contract_address,directory_address,method,args,payload_digest,nonce) VALUES(${input.operation_id},${auth.user_id},${auth.signer},${input.contract},${deployment[input.contract]},${deployment.directory},${input.method},${JSON.stringify(input.args)},${payload_digest},${nonce})`;
   } catch {
@@ -118,39 +130,49 @@ export async function prepareOperation(
   return {
     operation_id: input.operation_id,
     address: deployment[input.contract],
+    nonce: Number(nonce),
   };
 }
-export function executionFailed(tx: Record<string, unknown>) {
+function finalLeader(tx: Record<string, unknown>) {
   const consensus = tx.consensus_data as Record<string, unknown> | undefined;
   const receipts = consensus?.leader_receipt;
-  const leader = (Array.isArray(receipts) ? receipts.at(-1) : receipts) as
-    | Record<string, unknown>
-    | undefined;
-  const failures = [
+  const leaders = (
+    Array.isArray(receipts) ? receipts : receipts ? [receipts] : []
+  ) as Record<string, unknown>[];
+  return leaders
+    .filter(
+      (l) =>
+        !/execution cancel(?:led|ed) after quorum/i.test(JSON.stringify(l)),
+    )
+    .at(-1);
+}
+export function executionFailed(tx: Record<string, unknown>) {
+  const outcome = String(tx.result_name ?? tx.result);
+  if (["ERROR", "MAJORITY_DISAGREE", "7"].includes(outcome)) return true;
+  const result = String(tx.txExecutionResultName);
+  if (
+    [
+      "ERROR",
+      "CONTRACT_ERROR",
+      "INTERNAL_ERROR",
+      "FINISHED_WITH_ERROR",
+    ].includes(result)
+  )
+    return true;
+  if (result === "FINISHED_WITH_RETURN") return false;
+  return [
     "ERROR",
     "CONTRACT_ERROR",
     "INTERNAL_ERROR",
     "FINISHED_WITH_ERROR",
-  ];
-  return (
-    failures.includes(String(tx.txExecutionResultName)) ||
-    ["ERROR", "MAJORITY_DISAGREE", "7"].includes(
-      String(tx.result_name || tx.result),
-    ) ||
-    failures.includes(String(leader?.execution_result))
-  );
+  ].includes(String(finalLeader(tx)?.execution_result));
 }
 export function executionSucceeded(tx: Record<string, unknown>) {
   if (executionFailed(tx)) return false;
-  const consensus = tx.consensus_data as Record<string, unknown> | undefined;
-  const receipts = consensus?.leader_receipt;
-  const leader = (Array.isArray(receipts) ? receipts.at(-1) : receipts) as
-    | Record<string, unknown>
-    | undefined;
   return (
     tx.txExecutionResultName === "FINISHED_WITH_RETURN" ||
-    (["MAJORITY_AGREE", "6"].includes(String(tx.result_name || tx.result)) &&
-      leader?.execution_result === "SUCCESS")
+    (["MAJORITY_AGREE", "6"].includes(String(tx.result_name ?? tx.result)) &&
+      finalLeader(tx)?.execution_result === "SUCCESS")
   );
 }
 export function lifecycle(tx: Record<string, unknown>): Lifecycle {

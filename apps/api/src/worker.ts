@@ -3,10 +3,13 @@ import { chain, requireDeployment } from "./chain.js";
 import { sql } from "./db.js";
 import { lifecycle, matchesOperation } from "./operations.js";
 import { rebuildIndex } from "./indexer.js";
-export async function reconcile() {
+export async function reconcile(
+  userId: string | null = null,
+  refreshIndex = true,
+) {
   const deployment = requireDeployment();
   const rows =
-    await sql()`SELECT * FROM operation_journal WHERE status IN ('pending','accepted','finalized','delivery_failed') AND acknowledged=false ORDER BY created_at LIMIT 8`;
+    await sql()`SELECT * FROM operation_journal WHERE status IN ('pending','accepted','finalized','unresolved') AND acknowledged=false AND next_reconcile_at<=now() AND (${userId}::text IS NULL OR user_id=${userId}) ORDER BY last_reconciled_at NULLS FIRST,next_reconcile_at,created_at LIMIT 8`;
   let completed = 0;
   for (const row of rows) {
     try {
@@ -52,9 +55,11 @@ export async function reconcile() {
       if (acknowledged) completed++;
     } catch {
       await sql()`UPDATE operation_journal SET error='The network could not be reached. The broadcast journal is retained.',updated_at=now() WHERE operation_id=${row.operation_id}`;
+    } finally {
+      await sql()`UPDATE operation_journal SET last_reconciled_at=now(),reconcile_attempts=reconcile_attempts+1,next_reconcile_at=now()+make_interval(secs=>LEAST(900,30*power(2,LEAST(reconcile_attempts,5)))::integer) WHERE operation_id=${row.operation_id}`;
     }
   }
-  await rebuildIndex();
+  if (refreshIndex) await rebuildIndex();
   return completed;
 }
 if (

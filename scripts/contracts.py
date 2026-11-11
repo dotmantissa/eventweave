@@ -21,7 +21,7 @@ def build(check=False):
         else:
             output.write_text(expected)
     for source in sorted((ROOT / 'contracts/deployable').glob('*.py')):
-        subprocess.run(['genvm-lint', 'check', str(source), '--json'], check=True)
+        subprocess.run([str(ROOT / '.venv/bin/genvm-lint'), 'check', str(source), '--json'], check=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(); parser.add_argument('--check', action='store_true')

@@ -16,9 +16,9 @@
     "build:packages": "node scripts/build-packages.mjs",
     "build": "npm run build:packages && npm run build -w @eventweave/web && npm run typecheck",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . && python3 scripts/contracts.py --check",
+    "lint": "eslint . && node scripts/python.mjs scripts/contracts.py --check",
     "pretest": "npm run build:packages",
-    "test": "vitest run && python3 -m pytest tests/direct tests/validator -q",
+    "test": "vitest run && node scripts/python.mjs -m pytest tests/direct tests/validator -q",
     "deploy:contracts": "tsx scripts/deploy.ts",
     "network:verify": "tsx scripts/network-verify.ts",
     "db:migrate": "tsx scripts/migrate.ts",
@@ -50,5 +50,12 @@
     "typescript-eslint": "8.46.4",
     "vite": "6.4.6",
     "vitest": "4.1.12"
+  },
+  "overrides": {
+    "decode-uri-component": "0.5.1",
+    "minimatch": "11.0.8",
+    "uuid": "11.1.1",
+    "ws": "8.22.2",
+    "zod": "4.6.7"
   }
 }

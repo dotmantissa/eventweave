@@ -56,24 +56,35 @@ export async function identity(eventId: string): Promise<Identity> {
   ]);
   return { ...original, ...merged };
 }
-export async function relations(eventId: string): Promise<Certificate[]> {
-  const history = await read<{ request_id?: string; operation: string }[]>(
-    "directory",
-    "get_history",
-    [0, 50],
-  );
-  const ids = [
-    ...new Set(
-      history
-        .filter((h) => h.operation === "certificate")
-        .map((h) => h.request_id!),
-    ),
-  ];
-  const result: Certificate[] = [];
-  for (const id of ids) {
-    const relation = await read<Certificate>("directory", "get_relation", [id]);
-    if (relation.left === eventId || relation.right === eventId)
-      result.push(relation);
+export const lexicalOrder = (a: string, b: string) =>
+  a < b ? -1 : a > b ? 1 : 0;
+export async function readPages<T>(
+  contract: Parameters<typeof read>[0],
+  method: string,
+  args: (string | number | boolean)[] = [],
+): Promise<T[]> {
+  const result: T[] = [];
+  for (let offset = 0; ; offset += 50) {
+    const items = await read<T[]>(contract, method, [...args, offset, 50]);
+    result.push(...items);
+    if (items.length < 50) return result;
   }
-  return result;
+}
+export async function eventScope(eventId: string) {
+  const original = await read<Identity>("registry", "get_identity", [eventId]);
+  const policy = await read<{ scope: string }>("registry", "get_schema", [
+    original.schema_id,
+    original.schema_revision,
+  ]);
+  return policyScope(
+    policy.scope,
+    original.schema_id,
+    original.schema_revision,
+  );
+}
+export async function relations(eventId: string): Promise<Certificate[]> {
+  return readPages<Certificate>("directory", "get_event_relations", [
+    eventId,
+    await eventScope(eventId),
+  ]);
 }

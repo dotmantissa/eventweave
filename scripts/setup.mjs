@@ -16,10 +16,12 @@ if (!existsSync(".env")) {
   );
 }
 run("npm", ["ci"]);
-run("python3", ["-m", "venv", ".venv"]);
-run(".venv/bin/python", [
+run("python3", ["-m", "venv", "--without-pip", ".venv"]);
+run("python3", [
   "-m",
   "pip",
+  "--python",
+  ".venv",
   "install",
   "-r",
   existsSync("requirements.lock") ? "requirements.lock" : "requirements.txt",

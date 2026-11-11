@@ -15,6 +15,7 @@ export default function Challenges() {
   const [relation, setRelation] = useState(params.get("relation") || "");
   const [inspected, setInspected] = useState<Certificate | null>(null);
   const [correction, setCorrection] = useState("");
+  const [recoveryRelations, setRecoveryRelations] = useState("");
   async function inspect() {
     try {
       setInspected(
@@ -105,21 +106,21 @@ export default function Challenges() {
           <form onSubmit={challenge} className="challenge-form">
             <h2>Apply a correction</h2>
             <p>
-              A newer, delivered DISTINCT certificate must cover the same
-              subject and consumer bindings.
+              A newer, delivered SAME or DISTINCT certificate must cover the
+              same subject and consumer bindings.
             </p>
             <label className="field">
               Successor request ID
               <input
                 name="successor_id"
                 required
-                placeholder="A finalized DISTINCT correction"
+                placeholder="A finalized correction"
                 value={correction}
                 onChange={(e) => setCorrection(e.target.value)}
               />
             </label>
             <label className="field">
-              What did the original merge miss?
+              What did the original decision miss?
               <textarea
                 name="reason"
                 required
@@ -139,13 +140,25 @@ export default function Challenges() {
           </form>
           {inspected && (
             <section className="correction-recovery">
-              <h2>Restore the original identities</h2>
+              <h2>Restore corrected identities</h2>
               <p className="muted">
-                Once the correction and invalidation have finalized, split the
-                affected cluster into its original records. Then deliver the
-                successor notice from its docket to restore the application
-                counts.
+                For a DISTINCT correction, wait for every invalidation
+                acknowledgement, then recover the affected cluster. Recovery
+                restores every affected reference using a complete partition
+                proof. For clusters larger than two records, assess and deliver
+                every pair again: SAME within each occurrence and DISTINCT
+                between occurrences. For a SAME correction, submit a fresh
+                complete merge proof and deliver its notice.
               </p>
+              <label className="field">
+                Additional recovery relation IDs
+                <textarea
+                  rows={3}
+                  value={recoveryRelations}
+                  onChange={(e) => setRecoveryRelations(e.target.value)}
+                  placeholder="One delivered current pair certificate per line. The correction is included automatically."
+                />
+              </label>
               <button
                 className="button button-outline"
                 disabled={op.busy || !correction}
@@ -155,6 +168,9 @@ export default function Challenges() {
                       inspected.scope,
                       inspected.left,
                       correction,
+                      JSON.stringify(
+                        recoveryRelations.split(/[\s,]+/).filter(Boolean),
+                      ),
                     ]);
                   } catch (e) {
                     setError(
@@ -189,7 +205,7 @@ export default function Challenges() {
           <p>Original consumer references remain attributed to their owners.</p>
           <p>
             The affected cluster is restricted while aliases are invalidated.
-            Recovery splits records conservatively before fresh reuse.
+            Recovery requires evidence for every member’s corrected identity.
           </p>
           <Link to="/workspace">
             Open a successor comparison <ChevronRight size={16} />

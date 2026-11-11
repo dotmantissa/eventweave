@@ -26,6 +26,9 @@ import {
   hash,
   pairId,
   policyScope,
+  lexicalOrder,
+  readPages,
+  eventScope,
 } from "./chain.js";
 import {
   prepareOperation,
@@ -131,10 +134,10 @@ export async function buildApp() {
     const id = z.string().min(1).max(128).parse(request.params.id);
     const event = await identity(id);
     const relation = await relations(id);
-    const aliases = await read<Record<string, unknown>[]>(
+    const aliases = await readPages<Record<string, unknown>>(
       "directory",
-      "get_alias_history",
-      [0, 50],
+      "get_event_alias_history",
+      [id, await eventScope(id)],
     );
     return {
       identity: event,
@@ -256,8 +259,8 @@ export async function buildApp() {
     const auth = await authenticate(request);
     const input = z
       .object({
-        left: z.string().min(1).max(128),
-        right: z.string().min(1).max(128),
+        left: idSchema,
+        right: idSchema,
         consumer: z.enum(["incident", "release"]),
       })
       .strict()
@@ -267,7 +270,7 @@ export async function buildApp() {
     const records = [
       await read<Identity>("registry", "get_identity", [input.left]),
       await read<Identity>("registry", "get_identity", [input.right]),
-    ].sort((a, b) => a.event_id.localeCompare(b.event_id));
+    ].sort((a, b) => lexicalOrder(a.event_id, b.event_id));
     if (
       records[0].schema_id !== records[1].schema_id ||
       records[0].schema_revision !== records[1].schema_revision
@@ -284,12 +287,23 @@ export async function buildApp() {
     );
     const subject_id = pairId(input.left, input.right, scope);
     const generation =
-      Number(await read<number>("court", "get_generation", [subject_id])) + 1;
+      Number(
+        await read<number>("court", "get_generation", [
+          subject_id,
+          deployment()![input.consumer].toLowerCase(),
+        ]),
+      ) + 1;
     const consumer = await read<{
+      owner: string;
       consequence_digest: string;
       policy_id: string;
       policy_revision: number;
     }>(input.consumer, "get_configuration");
+    if (consumer.owner !== auth.signer)
+      throw new HttpError(
+        403,
+        "Only this application’s owner can authorize assessments for its references.",
+      );
     const addresses = deployment()!;
     const bound = {
       request_id: "request." + randomUUID().replaceAll("-", ""),
@@ -332,9 +346,11 @@ export async function buildApp() {
       await authenticate(request),
     );
   });
-  app.get("/api/operations", async (request) => ({
-    items: await userOperations((await authenticate(request)).user_id),
-  }));
+  app.get("/api/operations", async (request) => {
+    const auth = await authenticate(request);
+    await reconcile(auth.user_id, false);
+    return { items: await userOperations(auth.user_id) };
+  });
   app.get<{ Params: { id: string } }>(
     "/api/operations/:id",
     async (request) => {

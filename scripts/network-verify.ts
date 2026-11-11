@@ -1,7 +1,11 @@
 import { spawn } from "node:child_process";
-const child = spawn("python3", ["scripts/network-verify.py"], {
-  stdio: "inherit",
-});
+const child = spawn(
+  process.execPath,
+  ["scripts/python.mjs", "scripts/network-verify.py", ...process.argv.slice(2)],
+  {
+    stdio: "inherit",
+  },
+);
 child.on("exit", (code) => {
   process.exitCode = code ?? 1;
 });

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import {
   canonical,
@@ -166,4 +167,72 @@ describe("network and recovery boundaries", () => {
       ),
     ).toBe(false);
   });
+});
+
+it("accepts quorum success with a trailing cancelled leader execution", () => {
+  const cancelled = {
+    execution_result: "ERROR",
+    genvm_result: { stderr: "Validator execution cancelled after quorum" },
+  };
+  expect(
+    lifecycle({
+      status: 7,
+      result: 6,
+      consensus_data: {
+        leader_receipt: [{ execution_result: "SUCCESS" }, cancelled],
+      },
+    }),
+  ).toBe("finalized");
+  expect(
+    lifecycle({
+      status: 7,
+      txExecutionResultName: "FINISHED_WITH_RETURN",
+      consensus_data: { leader_receipt: [cancelled] },
+    }),
+  ).toBe("finalized");
+  expect(
+    lifecycle({
+      status: 7,
+      result: 7,
+      txExecutionResultName: "FINISHED_WITH_RETURN",
+      consensus_data: {
+        leader_receipt: [{ execution_result: "SUCCESS" }, cancelled],
+      },
+    }),
+  ).toBe("delivery_failed");
+  expect(
+    lifecycle({
+      status: 7,
+      result: 6,
+      consensus_data: {
+        leader_receipt: [
+          { execution_result: "SUCCESS" },
+          { execution_result: "ERROR", result: "contract_reverted" },
+        ],
+      },
+    }),
+  ).toBe("delivery_failed");
+});
+
+it("classifies the retained successful Studio operations with trailing cancellations", () => {
+  const journal = JSON.parse(
+    readFileSync("verification/public-source-receipts.v3.json", "utf8"),
+  );
+  let checked = 0;
+  for (const entry of Object.values(journal) as {
+    success?: boolean;
+    receipt?: { status: string; result: string; leaders: unknown[] };
+  }[]) {
+    if (entry.success && entry.receipt) {
+      expect(
+        lifecycle({
+          status: entry.receipt.status,
+          result: entry.receipt.result,
+          consensus_data: { leader_receipt: entry.receipt.leaders },
+        }),
+      ).toBe("finalized");
+      checked++;
+    }
+  }
+  expect(checked).toBeGreaterThan(10);
 });

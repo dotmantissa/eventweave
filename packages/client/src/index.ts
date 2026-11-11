@@ -38,6 +38,22 @@ export class EventWeaveClient {
       jsonSafeReturn: true,
     });
   }
+  notice(operationId: string) {
+    return this.client.readContract({
+      address: this.deployment.directory,
+      functionName: "get_notice",
+      args: [operationId],
+      jsonSafeReturn: true,
+    });
+  }
+  retryNotice(operationId: string) {
+    return this.client.writeContract({
+      address: this.deployment.directory,
+      functionName: "retry_notice",
+      args: [operationId],
+      value: 0n,
+    });
+  }
   compare(requestJson: string) {
     return this.client.writeContract({
       address: this.deployment.court,
@@ -78,4 +94,34 @@ export class EventWeaveClient {
       value: 0n,
     });
   }
+}
+
+export function boundSigningProvider(
+  provider: {
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  },
+  account: string,
+  nonce: number,
+) {
+  return {
+    request: async (args: { method: string; params?: unknown[] }) => {
+      if (args.method === "eth_sendTransaction") {
+        const tx = args.params?.[0] as
+          | { from?: string; nonce?: string; chainId?: string }
+          | undefined;
+        if (
+          !tx ||
+          tx.from?.toLowerCase() !== account.toLowerCase() ||
+          tx.nonce === undefined ||
+          BigInt(tx.nonce) !== BigInt(nonce) ||
+          BigInt(tx.chainId || 0) !== 61999n
+        ) {
+          throw new Error(
+            "Your signing account changed while preparing. Try again to prepare a fresh request.",
+          );
+        }
+      }
+      return provider.request(args);
+    },
+  };
 }

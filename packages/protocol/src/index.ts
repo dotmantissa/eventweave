@@ -170,6 +170,7 @@ export interface Certificate extends Envelope {
   left: string;
   right: string;
   scope: string;
+  certified_types: Record<string, z.infer<typeof kindSchema> | "UNKNOWN">;
 }
 export interface Operation {
   operation_id: string;

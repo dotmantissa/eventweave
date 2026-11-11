@@ -25,16 +25,6 @@ export function useOperation() {
       const token = await getAccessToken();
       if (!token)
         throw new Error("Your session has expired. Please sign in again.");
-      const operation_id = crypto.randomUUID();
-      const headers = { Authorization: "Bearer " + token };
-      const prepared = await request<{
-        address: `0x${string}`;
-        operation_id: string;
-      }>("/operations/prepare", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ operation_id, contract, method, args }),
-      });
       const wallet = wallets.find((w) => w.walletClientType === "privy");
       if (!wallet)
         throw new Error(
@@ -42,8 +32,29 @@ export function useOperation() {
         );
       await wallet.switchChain(61999);
       const provider = await wallet.getEthereumProvider();
-      const { signedClient } = await import("@eventweave/client");
-      const client = signedClient(wallet.address as `0x${string}`, provider);
+      const { signedClient, boundSigningProvider } = await import(
+        "@eventweave/client"
+      );
+      const headers = { Authorization: "Bearer " + token };
+      const prepared = await request<{
+        address: `0x${string}`;
+        operation_id: string;
+        nonce: number;
+      }>("/operations/prepare", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          operation_id: crypto.randomUUID(),
+          contract,
+          method,
+          args,
+        }),
+      });
+      const operation_id = prepared.operation_id;
+      const client = signedClient(
+        wallet.address as `0x${string}`,
+        boundSigningProvider(provider, wallet.address, prepared.nonce),
+      );
       setMessage("Sending your signed request…");
       const hash = await client.writeContract({
         address: prepared.address,

@@ -36,14 +36,20 @@ def receipt_summary(receipt):
 def succeeded(receipt):
     consensus=receipt.get('consensus_data',{});leaders=consensus.get('leader_receipt',[])
     if not isinstance(leaders,list):leaders=[leaders]
-    return receipt.get('result_name') == 'MAJORITY_AGREE' and any(x.get('execution_result') == 'SUCCESS' for x in leaders)
+    leaders = [x for x in leaders if 'execution cancelled after quorum' not in json.dumps(x).lower() and 'execution canceled after quorum' not in json.dumps(x).lower()]
+    return receipt.get('result_name') == 'MAJORITY_AGREE' and bool(leaders) and leaders[-1].get('execution_result') == 'SUCCESS'
 
 class Journal:
     def __init__(self,path):
         self.path=ROOT/path;self.path.parent.mkdir(parents=True,exist_ok=True)
         self.operations=json.loads(self.path.read_text()) if self.path.exists() else {}
-    def perform(self,operation_id,callback,signer='DEPLOYER_PRIVATE_KEY'):
+    def perform(self,operation_id,callback,signer='DEPLOYER_PRIVATE_KEY',binding=None):
         c=client(signer);entry=self.operations.get(operation_id)
+        if entry and binding is not None and entry.get('binding') != binding:
+            if entry.get('binding') is None and all(entry.get(k) == v for k, v in binding.items()):
+                entry['binding'] = binding; atomic(self.path, self.operations)
+            else:
+                raise RuntimeError('Journal payload changed: ' + operation_id)
         if entry and entry.get('success'):
             return entry
         if entry and entry.get('status') == 'finalized' and not entry.get('success'):
@@ -54,7 +60,7 @@ class Journal:
             entry = None
         if not entry:
             started=time.monotonic();tx=callback(c)
-            entry={'transaction_hash':str(tx),'signer':c.local_account.address,'status':'broadcast','started_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'broadcast_seconds':round(time.monotonic()-started,3)}
+            entry={'transaction_hash':str(tx),'signer':c.local_account.address,'status':'broadcast','binding':binding,'started_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'broadcast_seconds':round(time.monotonic()-started,3)}
             self.operations[operation_id]=entry;atomic(self.path,self.operations)
             print(operation_id,'broadcast',entry['transaction_hash'],flush=True)
         try:
@@ -63,7 +69,10 @@ class Journal:
             observed=c.get_transaction(entry['transaction_hash'])
             entry['observed_receipt']=receipt_summary(observed)
             atomic(self.path,self.operations)
-            raise RuntimeError('Still awaiting finalization: ' + operation_id + ' ' + entry['transaction_hash']) from None
+            if str(observed.get('status_name', observed.get('status'))).upper() == 'FINALIZED' and observed.get('consensus_data', {}).get('leader_receipt'):
+                receipt = observed
+            else:
+                raise RuntimeError('Still awaiting finalization: ' + operation_id + ' ' + entry['transaction_hash']) from None
         entry.update(receipt=receipt_summary(receipt),success=succeeded(receipt),status='finalized')
         atomic(self.path,self.operations)
         print(operation_id,'finalized','success' if entry['success'] else 'EXECUTION FAILED',flush=True)
