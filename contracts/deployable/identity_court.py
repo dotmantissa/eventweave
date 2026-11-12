@@ -412,6 +412,7 @@ class IdentityCourt(gl.Contract):
         text(reason, 2000)
         if old['superseded_by']:
             if old['superseded_by'] == successor_id:
+                self.retry_revocation(relation_id)
                 return
             fail('Relation already superseded')
         if old['subject_id'] != successor['subject_id'] or old['subject_digest'] != successor['subject_digest'] or old['policy_id'] != successor['policy_id'] or old['policy_revision'] != successor['policy_revision'] or old['consumer_address'] != successor['consumer_address'] or old['consequence_digest'] != successor['consequence_digest'] or successor['generation'] <= old['generation'] or successor['status'] != 'accepted' or successor['decision'] not in ('SAME', 'DISTINCT') or successor['quarantined']:
@@ -425,7 +426,7 @@ class IdentityCourt(gl.Contract):
         self.results[relation_id] = encoded(old)
         self.quarantines[relation_id] = True
         append(self.history, {'request_id': relation_id, 'status': 'superseded', 'superseded_by': successor_id, 'reason': reason})
-        gl.get_contract_at(self.directory).emit(on='finalized').invalidate_relation(relation_id, successor_id)
+        self.retry_revocation(relation_id)
 
     @gl.public.write
     def quarantine_request(self, request_id: str, reason: str) -> None:
@@ -433,11 +434,17 @@ class IdentityCourt(gl.Contract):
         if gl.message.sender_address != self.owner and str(gl.message.sender_address).lower() != result['owner']:
             fail('Only court or request owner may quarantine')
         text(reason, 2000)
-        if self.quarantines.get(request_id, False):
-            return
-        self.quarantines[request_id] = True
-        append(self.history, {'request_id': request_id, 'status': 'quarantined', 'reason': reason})
-        gl.get_contract_at(self.directory).emit(on='finalized').invalidate_relation(request_id, '')
+        if not self.quarantines.get(request_id, False):
+            self.quarantines[request_id] = True
+            append(self.history, {'request_id': request_id, 'status': 'quarantined', 'reason': reason})
+        self.retry_revocation(request_id)
+
+    @gl.public.write
+    def retry_revocation(self, request_id: str) -> None:
+        result = self.get_result(request_id)
+        if not result['quarantined'] and result['status'] != 'superseded':
+            fail('No court revocation')
+        gl.get_contract_at(self.directory).emit(on='finalized').invalidate_relation(request_id, result['superseded_by'])
 
     @gl.public.write
     def retry_delivery(self, request_id: str) -> None:

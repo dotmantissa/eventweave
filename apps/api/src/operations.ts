@@ -24,6 +24,7 @@ const methods: Record<string, string[]> = {
     "supersede_relation",
     "quarantine_request",
     "retry_delivery",
+    "retry_revocation",
     "cancel_request",
   ],
   directory: [

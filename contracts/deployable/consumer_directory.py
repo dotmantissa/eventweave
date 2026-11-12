@@ -178,7 +178,7 @@ class ConsumerDirectory(gl.Contract):
     registry: Address
     certificates: TreeMap[str, str]
     edges: TreeMap[str, str]
-    distinct_index: TreeMap[str, str]
+    distinct_index: TreeMap[str, str]  # Reserved legacy storage slot; use pair_consumers.
     memberships: TreeMap[str, str]
     canonical_ids: TreeMap[str, str]
     aliases: TreeMap[str, str]
@@ -267,7 +267,6 @@ class ConsumerDirectory(gl.Contract):
         self.pair_consumers[key] = encoded(consumers)
         self.edges[key] = request_id
         if certificate['decision'] == 'DISTINCT':
-            self.distinct_index[key] = request_id
             if certificate['right'] in self._members(certificate['scope'], certificate['left']):
                 self._quarantine_component(certificate['scope'], certificate['left'], request_id)
         elif self._distinct(key):
@@ -326,8 +325,8 @@ class ConsumerDirectory(gl.Contract):
                 supplied[key] = certificate
             # Inspect every non merge edge before considering affirmative support.
             for key in sorted(required):
-                if self._distinct(key):
-                    witness = self.distinct_index[key]
+                witness = self._distinct(key)
+                if witness:
                     status = 'refused'
                     break
             if status != 'refused':
@@ -421,15 +420,29 @@ class ConsumerDirectory(gl.Contract):
     def _active(self, node: str) -> list:
         return sorted(set(op for pending in json.loads(self.active_authorizations.get(node, '{}')).values() for op in pending))
 
-    def _distinct(self, key: str) -> bool:
-        if key not in self.distinct_index:
-            return False
-        certificate = json.loads(self.certificates[self.distinct_index[key]])
-        try:
-            self._live(certificate)
-            return certificate['status'] == 'finalized'
-        except Exception:
-            return False
+    def _distinct(self, key: str) -> str:
+        # Generations are consumer-scoped. Retiring one consumer's certificate
+        # must never erase another consumer's current non-merge witness.
+        for relation_id in sorted(json.loads(self.pair_consumers.get(key, '{}')).values()):
+            certificate = json.loads(self.certificates[relation_id])
+            if certificate['decision'] != 'DISTINCT' or certificate['status'] != 'finalized':
+                continue
+            try:
+                self._live(certificate)
+            except gl.vm.UserError as error:
+                # Only established staleness removes a witness; unexpected read
+                # failures must not become permission to merge.
+                if error.message not in (
+                    '[EXPECTED] Certificate binding mismatch',
+                    '[EXPECTED] Certificate is stale or quarantined',
+                    '[EXPECTED] Certificate generation is stale',
+                    '[EXPECTED] Source is quarantined',
+                    '[EXPECTED] Source revision is stale; a successor request is required',
+                ):
+                    raise
+                continue
+            return relation_id
+        return ''
 
     def _proof(self, scope: str, event_id: str) -> list:
         members = self._members(scope, event_id)
@@ -561,17 +574,17 @@ class ConsumerDirectory(gl.Contract):
         live = gl.get_contract_at(self.court).view().get_result(relation_id)
         if not live['quarantined'] and live['status'] != 'superseded':
             fail('No court revocation')
+        # A delayed quarantine callback may arrive after a supersession. Always
+        # bind retirement to the court's current authoritative successor.
+        successor_id = live['superseded_by']
         already_retired = cert['status'] == 'superseded'
         cert.update(status='superseded', superseded_by=successor_id)
         self.certificates[relation_id] = encoded(cert)
-        key = pair_key(cert['left'], cert['right'], cert['scope'])
+        for member in (cert['left'], cert['right']):
+            for op in self._active(self._node(cert['scope'], member)):
+                if relation_id in json.loads(self.notices[op])['proofs']:
+                    self._revoke_notice(op, successor_id)
         if cert['decision'] == 'DISTINCT':
-            if self.distinct_index.get(key, '') == relation_id:
-                del self.distinct_index[key]
-            for member in (cert['left'], cert['right']):
-                for op in self._active(self._node(cert['scope'], member)):
-                    if relation_id in json.loads(self.notices[op])['proofs']:
-                        self._revoke_notice(op, successor_id)
             return
         # A repeated court callback after recovery must not quarantine the recovered component again.
         node = self._node(cert['scope'], cert['left'])
@@ -582,11 +595,22 @@ class ConsumerDirectory(gl.Contract):
     def retry_invalidation(self, relation_id: str) -> None:
         operations = [relation_id] if relation_id in self.revocation_notices else []
         if not operations:
-            # Legacy request IDs still resolve active authorization notices for recovery clients.
-            for member in (json.loads(self.certificates[relation_id])['left'], json.loads(self.certificates[relation_id])['right']):
-                for op in self._active(self._node(json.loads(self.certificates[relation_id])['scope'], member)):
-                    if op in self.revocation_notices and relation_id in json.loads(self.notices[op])['proofs']:
-                        operations.append(op)
+            relations = json.loads(self.notices[relation_id])['proofs'] if relation_id in self.notices else [relation_id]
+            for request_id in relations:
+                if request_id not in self.certificates:
+                    fail('Unknown finalized relation')
+                if not self.invalidated_relations.get(request_id, False):
+                    live = gl.get_contract_at(self.court).view().get_result(request_id)
+                    if live['quarantined'] or live['status'] == 'superseded':
+                        # Recreate the missing first hop through the court so the
+                        # eventual invalidation remains an authenticated court call.
+                        gl.get_contract_at(self.court).emit(on='finalized').retry_revocation(request_id)
+                # Request IDs resolve active authorization notices for recovery clients.
+                cert = json.loads(self.certificates[request_id])
+                for member in (cert['left'], cert['right']):
+                    for op in self._active(self._node(cert['scope'], member)):
+                        if op in self.revocation_notices and request_id in json.loads(self.notices[op])['proofs']:
+                            operations.append(op)
         for op in sorted(set(operations)):
             notice = json.loads(self.revocation_notices[op])
             gl.get_contract_at(Address(notice['consumer_address'])).emit(on='finalized').invalidate_identity(encoded(notice))
