@@ -64,7 +64,7 @@ class Journal:
             self.operations[operation_id]=entry;atomic(self.path,self.operations)
             print(operation_id,'broadcast',entry['transaction_hash'],flush=True)
         try:
-            receipt=c.wait_for_transaction_receipt(entry['transaction_hash'],status=TransactionStatus.FINALIZED,retries=60,interval=5000,full_transaction=True)
+            receipt=c.wait_for_transaction_receipt(entry['transaction_hash'],status=TransactionStatus.FINALIZED,retries=30,interval=15000,full_transaction=True)
         except Exception:
             observed=c.get_transaction(entry['transaction_hash'])
             entry['observed_receipt']=receipt_summary(observed)

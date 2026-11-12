@@ -246,3 +246,29 @@ def test_recovery_rejects_a_contradictory_partition(system,event_factory,request
         c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'],encode([ac['envelope']['request_id'],bc['envelope']['request_id']]))
     assert c.call(s.incident,'get_stats')['accepted_count']==0
     assert c.call(s.directory,'get_identity','c',scope)['status']=='quarantined'
+
+
+def test_maximum_component_recovers_a_complete_two_group_partition(system,event_factory,request_factory):
+    from itertools import combinations
+    s=system;c=s.chain
+    for r in 'abcdef':event_factory(r)
+    reserve(s,'abcdef')
+    original=[certify(s,request_factory,a,b) for a,b in combinations('abcdef',2)]
+    for size in range(2,7):
+        subset=[r for r in original if r['left'] in 'abcdef'[:size] and r['right'] in 'abcdef'[:size]]
+        scope=finalize_merge(s,subset,'a','abcdef'[size-1],'original.'+str(size))
+    publish(s,original[0]);assert c.call(s.incident,'get_stats')['accepted_count']==1
+    correction=certify(s,request_factory,'a','d','DISTINCT',generation=2)
+    repair=[correction]
+    for a,b in combinations('abcdef',2):
+        if (a,b)==('a','d'):continue
+        decision='SAME' if (a in 'abc')==(b in 'abc') else 'DISTINCT'
+        repair.append(certify(s,request_factory,a,b,decision,generation=2))
+    proof=encode([r['envelope']['request_id'] for r in repair])
+    c.call(s.directory,'recover_component',scope,'a',correction['envelope']['request_id'],proof);c.finalize()
+    assert c.call(s.incident,'get_stats')['accepted_count']==2
+    assert [c.call(s.incident,'get_reference','ref.'+r)['canonical_id'] for r in 'abcdef']==['a']*3+['d']*3
+    c.call(s.incident,'register_reference','f','later.f',sender=INCIDENT_OWNER)
+    publish(s,correction)
+    assert c.call(s.incident,'get_reference','later.f')['canonical_id']=='d'
+    assert c.call(s.incident,'get_stats')['accepted_count']==2
