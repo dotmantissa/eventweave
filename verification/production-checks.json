@@ -1,6 +1,6 @@
 {
   "url": "https://eventweave.vercel.app",
-  "revision": 6,
+  "revision": 7,
   "checks": [
     {
       "method": "GET",
@@ -58,8 +58,5 @@
       "expected": 401,
       "passed": true
     }
-  ],
-  "deployment_id": "dpl_4mkWd3rmav4XnmSwtTiPRosrGqjF",
-  "contract_revision": 6,
-  "verified_on": "2026-11-12"
+  ]
 }

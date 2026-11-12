@@ -61,10 +61,14 @@ compare_entry = journal.operations.get('compare.successor')
 if compare_entry:
     # Preserve the exact immutable request packet across interrupted runs.
     packet = compare_entry['binding']['packet']
+elif 'packet' in progress:
+    packet = progress['packet']
 else:
     env = {k: original[k] for k in ('request_id', 'owner', 'parties', 'policy_id', 'policy_revision', 'subject_id', 'subject_digest', 'source_manifest_digest', 'consumer_address', 'consequence_digest', 'generation', 'deadline')}
     env.update(request_id=successor_id, generation=2, source_manifest_digest=digest([r['source'] for r in records]), deadline=(datetime.now(timezone.utc) + timedelta(days=2)).isoformat().replace('+00:00', 'Z'))
     packet = {'envelope': env, 'left': original['left'], 'right': original['right']}
+    progress['packet'] = packet
+    atomic(results_path, progress)
 journal.perform('compare.successor', lambda c: c.write_contract(court, 'compare_records', args=[encode(packet)]), key, binding={'packet': packet})
 journal.perform('assess.successor', lambda c: c.write_contract(court, 'assess', args=[successor_id]), key)
 successor = read(court, 'get_result', successor_id)
@@ -86,6 +90,7 @@ atomic(results_path, {
     'repeated_quarantine_emitted': True, 'court_replay_emitted': True,
     'directory_replay_emitted': True, 'repeated_supersession_emitted': True,
     'successor': successor, 'restored_ack': restored_ack, 'restored_stats': restored_stats,
+    'interrupted_compare_recovered': progress.get('interrupted_compare_recovered'),
     'passed': True,
 })
 print('Actual revocation replay finalized and acknowledged; release count restored to 3', flush=True)

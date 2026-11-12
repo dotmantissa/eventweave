@@ -1,10 +1,14 @@
 {
-  "deployment_id": "dpl_4mkWd3rmav4XnmSwtTiPRosrGqjF",
+  "deployment_id": "dpl_Akw3E2sb2XzECK2wobJqVghcYpwz",
   "url": "https://eventweave.vercel.app",
   "ready_state": "READY",
-  "contract_revision": 6,
-  "application_source_commit": "80dacb466befca569c537c8bb31b1e153c330c43",
-  "contract_source_commit": "f4727eaf09afc615000657074473389ef9c1138d",
+  "contract_revision": 7,
+  "application_source_commit": "e90b99aabf11aa568ebb70676710caab38b3f2c6",
+  "contract_source_commit": "e90b99aabf11aa568ebb70676710caab38b3f2c6",
   "node_version": "22.x",
-  "first_wallet_raw_attachment_fix": true
+  "first_wallet_raw_attachment_fix": true,
+  "production_http_checks_passed": 8,
+  "revocation_evidence": "revocation-results.v7.json",
+  "production_browser_checks_passed": 24,
+  "finalized_docket_replay_verified": true
 }

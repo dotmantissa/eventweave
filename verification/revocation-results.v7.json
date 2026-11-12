@@ -1,0 +1,114 @@
+{
+  "classification": "Actual signed Studio revocation/replay and successor recertification on authentic Node.js releases. Dropped callbacks are tested separately in controlled regressions.",
+  "deployment": {
+    "network": "studionet",
+    "chain_id": 61999,
+    "revision": 7,
+    "signer": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
+    "incident_owner": "0x27BF060c65e14796E9b079Ac0C84DB78d8318cb3",
+    "release_owner": "0xDDF754eF6D9c7e7Cd5E61dEeD309045d52465076",
+    "registry": "0xABa89A93EF075f9845975515cf434b7aF1E8b36E",
+    "court": "0xC284F468C93384830467c60d8ee4824a7432816D",
+    "directory": "0xb0f484437E263676d6f51A9e7A56CfaD5bC05d62",
+    "incident": "0x26491c26ff9b54aC36343812E7dCFb252d6a0Ca2",
+    "release": "0x7EC6464911F373E4de1dd86dF6fc524CC8700075"
+  },
+  "request_id": "public.v7.releases.distinct",
+  "notice_id": "delivery:1c6e20cd6607528249c0fa0b8ab921f371cc916f4849a86f0bd8525d3e902ae4",
+  "invalidation_ack": {
+    "generation": 1,
+    "operation_id": "invalidate:delivery:1c6e20cd6607528249c0fa0b8ab921f371cc916f4849a86f0bd8525d3e902ae4",
+    "request_id": "public.v7.releases.distinct",
+    "status": "superseded"
+  },
+  "invalidated_stats": {
+    "accepted_count": 1,
+    "capacity": 1000,
+    "held_count": 4,
+    "references": 4
+  },
+  "repeated_quarantine_emitted": true,
+  "court_replay_emitted": true,
+  "directory_replay_emitted": true,
+  "repeated_supersession_emitted": true,
+  "successor": {
+    "certified_types": {
+      "nodejs.release.22.11.0": "release",
+      "nodejs.release.22.13.1": "release"
+    },
+    "common_cause": "UNKNOWN",
+    "consequence_digest": "1da8f4066a757ffdcec39fd1b3ad9fc3903f9db9e3c1c4dfe49c44641fdde9e4",
+    "consumer_address": "0x7ec6464911f373e4de1dd86df6fc524cc8700075",
+    "controlling_rules": [
+      "DISCRIMINATING_FACT",
+      "NONE"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-14T16:05:30.621135Z",
+    "decision": "DISTINCT",
+    "generation": 2,
+    "left": "nodejs.release.22.13.1",
+    "owner": "0xddf754ef6d9c7e7cd5e61deed309045d52465076",
+    "parties": [
+      "0xddf754ef6d9c7e7cd5e61deed309045d52465076"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v7.releases.recertified",
+    "right": "nodejs.release.22.11.0",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "21e0be12331f392d61bde3e0b8642cc22fbf0fc432547970d03c5b9bc40ffad6",
+    "status": "accepted",
+    "subject_digest": "25bc5cb1104bdab6b8258f7e3e94d8a914f3fd1ae19a55793eb913eb99ff0453",
+    "subject_id": "pair:637dd2d686d7972bc4eb6841ab39c728c680e3ec5ed754a25cfe7eaa2d9121b5",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "DISTINCT",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "DISTINCT",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.release.22.11.0.interval",
+        "nodejs.release.22.13.1.interval"
+      ],
+      "issuer": [
+        "nodejs.release.22.11.0.issuer",
+        "nodejs.release.22.13.1.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.release.22.11.0.occurrence_type",
+        "nodejs.release.22.13.1.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.release.22.11.0.official_reference",
+        "nodejs.release.22.13.1.official_reference"
+      ],
+      "place": [
+        "nodejs.release.22.11.0.place",
+        "nodejs.release.22.13.1.place"
+      ]
+    }
+  },
+  "restored_ack": {
+    "fingerprint": "b60650ed9b5e741f8cc1359e147056e5332608bca8425cb1b010483849108e6f",
+    "generation": 2,
+    "operation_id": "delivery:928d42a824a85607e6aaae4ceac377252dbb1827cc270c940cb735844bae7e52",
+    "reference_count": 2,
+    "references_digest": "3b2aae11385fb2ba72a47238e9cdc925ef7b3a5fb44d3ec6516da65b7f6d1358",
+    "request_id": "public.v7.releases.recertified",
+    "status": "finalized"
+  },
+  "restored_stats": {
+    "accepted_count": 3,
+    "capacity": 1000,
+    "held_count": 4,
+    "references": 4
+  },
+  "interrupted_compare_recovered": "0x4374d4c6b5f45ce02f6da0f9c43861e75d72b35ce09e171f5e9527bfbf53e613",
+  "passed": true
+}

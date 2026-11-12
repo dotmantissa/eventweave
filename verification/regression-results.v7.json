@@ -1,0 +1,37 @@
+{
+  "classification": "Controlled failure reproduction and deterministic regression verification; callback drops are simulated in the direct-mode message queue.",
+  "original_commit": "0539d7f53d83c4d5173f955cef307781730b585b",
+  "fixed_commit": "e90b99aabf11aa568ebb70676710caab38b3f2c6",
+  "baseline_failures": 14,
+  "baseline_failed_cases": [
+    "tests/direct/test_review_regressions.py::test_withdrawing_newer_distinct_preserves_other_consumers_witness[quarantine]",
+    "tests/direct/test_review_regressions.py::test_withdrawing_newer_distinct_preserves_other_consumers_witness[supersede]",
+    "tests/direct/test_review_regressions.py::test_withdrawing_newer_distinct_preserves_other_consumers_witness[generation]",
+    "tests/direct/test_review_regressions.py::test_pending_merge_rechecks_remaining_distinct_at_finalization",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[court_action-SAME]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[court_action-DISTINCT]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[directory-SAME]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[directory-DISTINCT]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[court_retry-SAME]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_quarantine_is_recoverable[court_retry-DISTINCT]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_supersession_uses_bound_successor[court_action]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_supersession_uses_bound_successor[directory]",
+    "tests/direct/test_review_regressions.py::test_dropped_initial_supersession_uses_bound_successor[quarantine]",
+    "tests/direct/test_review_regressions.py::test_revocation_replay_cannot_revoke_live_certificate"
+  ],
+  "new_regression_cases_passed": 21,
+  "python_suite_passed": 73,
+  "typescript_suite_passed": 49,
+  "genvm_checks_passed": 7,
+  "build_passed": true,
+  "typecheck_passed": true,
+  "lint_passed": true,
+  "format_passed": true,
+  "source_sha256": {
+    "event_registry": "8b851a9d6d13a67bb70f18381e132bbcc0f44ac2541eb26d737009c33c704de0",
+    "identity_court": "dc05f31c3bba39035165a1e611103105457f3d1e4c35430e56df616c843af22c",
+    "consumer_directory": "a3598439080af536a3707fa1c785742997d8adfba2734a383ee833ad4293b850",
+    "incident_history": "011ecc818f9d6cd37ee0a394d22e50d42bcfbdfe10737e802314342ba65ee4fc",
+    "release_evidence": "7d1f4fba4d99fcca89f71f0dbbf31dcd258511ef39536b0c0f7338f6b94fa233"
+  }
+}

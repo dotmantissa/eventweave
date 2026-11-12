@@ -1,0 +1,245 @@
+{
+  "notice.renamed.incident": {
+    "certified_types": {
+      "nodejs.notice.jan2025": "operational_notice",
+      "nodejs.notice.jan2025.amended": "operational_notice"
+    },
+    "common_cause": "UNKNOWN",
+    "consequence_digest": "59c15976aa0b92689bbde9ec6dabc7287cf3651960ef6f5ab25e9afc128f08d0",
+    "consumer_address": "0x26491c26ff9b54ac36343812e7dcfb252d6a0ca2",
+    "controlling_rules": [
+      "ALL_ATTRIBUTES",
+      "NONE"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-14T15:19:25.878729Z",
+    "decision": "SAME",
+    "generation": 1,
+    "left": "nodejs.notice.jan2025",
+    "owner": "0x27bf060c65e14796e9b079ac0c84db78d8318cb3",
+    "parties": [
+      "0x27bf060c65e14796e9b079ac0c84db78d8318cb3"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v7.notice.renamed.incident",
+    "right": "nodejs.notice.jan2025.amended",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "19b16084b804a7c275e8f475817502a78d898b7c707cb45dc31fd1a22022b2b3",
+    "status": "accepted",
+    "subject_digest": "15b540f78a2cc56d0ac4b1c385a549f7743c5010560e9a55a503ce6fd4023ba5",
+    "subject_id": "pair:a69d6ae734f5be977a63603e80698046bb4c08b24edebd6c5517c521117c613a",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "SAME",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "SAME",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.notice.jan2025.amended.interval",
+        "nodejs.notice.jan2025.interval"
+      ],
+      "issuer": [
+        "nodejs.notice.jan2025.amended.issuer",
+        "nodejs.notice.jan2025.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.notice.jan2025.amended.occurrence_type",
+        "nodejs.notice.jan2025.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.notice.jan2025.amended.official_reference",
+        "nodejs.notice.jan2025.official_reference"
+      ],
+      "place": [
+        "nodejs.notice.jan2025.amended.place",
+        "nodejs.notice.jan2025.place"
+      ]
+    },
+    "directory_ack": {
+      "generation": 1,
+      "request_id": "public.v7.notice.renamed.incident",
+      "status": "finalized"
+    },
+    "consumer_ack": {
+      "fingerprint": "698f581d1e85ca798b4065cda611273ec3119046f6589a268e94c207f38d5a85",
+      "generation": 1,
+      "operation_id": "delivery:35c0229c2c54127f1b2d8704c654dc66bc5805f15757def498c32caaffab4be7",
+      "reference_count": 2,
+      "references_digest": "3f54e411b600d414b8dce5ff9566b39221630b1aa9525967b43b74d9e26ee49c",
+      "request_id": "public.v7.notice.renamed.incident",
+      "status": "finalized"
+    }
+  },
+  "notice.renamed.release": {
+    "certified_types": {
+      "nodejs.notice.jan2025": "operational_notice",
+      "nodejs.notice.jan2025.amended": "operational_notice"
+    },
+    "common_cause": "UNKNOWN",
+    "consequence_digest": "1da8f4066a757ffdcec39fd1b3ad9fc3903f9db9e3c1c4dfe49c44641fdde9e4",
+    "consumer_address": "0x7ec6464911f373e4de1dd86df6fc524cc8700075",
+    "controlling_rules": [
+      "ALL_ATTRIBUTES",
+      "NONE"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-14T15:25:59.742373Z",
+    "decision": "SAME",
+    "generation": 1,
+    "left": "nodejs.notice.jan2025",
+    "owner": "0xddf754ef6d9c7e7cd5e61deed309045d52465076",
+    "parties": [
+      "0xddf754ef6d9c7e7cd5e61deed309045d52465076"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v7.notice.renamed.release",
+    "right": "nodejs.notice.jan2025.amended",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "19b16084b804a7c275e8f475817502a78d898b7c707cb45dc31fd1a22022b2b3",
+    "status": "accepted",
+    "subject_digest": "15b540f78a2cc56d0ac4b1c385a549f7743c5010560e9a55a503ce6fd4023ba5",
+    "subject_id": "pair:a69d6ae734f5be977a63603e80698046bb4c08b24edebd6c5517c521117c613a",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "SAME",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "SAME",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.notice.jan2025.amended.interval",
+        "nodejs.notice.jan2025.interval"
+      ],
+      "issuer": [
+        "nodejs.notice.jan2025.amended.issuer",
+        "nodejs.notice.jan2025.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.notice.jan2025.amended.occurrence_type",
+        "nodejs.notice.jan2025.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.notice.jan2025.amended.official_reference",
+        "nodejs.notice.jan2025.official_reference"
+      ],
+      "place": [
+        "nodejs.notice.jan2025.amended.place",
+        "nodejs.notice.jan2025.place"
+      ]
+    },
+    "directory_ack": {
+      "generation": 1,
+      "request_id": "public.v7.notice.renamed.release",
+      "status": "finalized"
+    },
+    "consumer_ack": {
+      "fingerprint": "a38fc05c3a85a056c7c4a572e696c122e72ab75bd40ff735a6239a0d1adf455d",
+      "generation": 1,
+      "operation_id": "delivery:b622c4500beb63295bad09df1b625fdd8be91788734e8398edfc2d604198c5f1",
+      "reference_count": 2,
+      "references_digest": "0b95c50cf993ec8c9b7fa137470f7d8e1c957055dab351f9b4ae41ff498933a4",
+      "request_id": "public.v7.notice.renamed.release",
+      "status": "finalized"
+    }
+  },
+  "releases.distinct": {
+    "certified_types": {
+      "nodejs.release.22.11.0": "release",
+      "nodejs.release.22.13.1": "release"
+    },
+    "common_cause": "UNKNOWN",
+    "consequence_digest": "1da8f4066a757ffdcec39fd1b3ad9fc3903f9db9e3c1c4dfe49c44641fdde9e4",
+    "consumer_address": "0x7ec6464911f373e4de1dd86df6fc524cc8700075",
+    "controlling_rules": [
+      "DISCRIMINATING_FACT",
+      "CONTRARY_FACT"
+    ],
+    "coverage": true,
+    "deadline": "2026-11-14T15:31:31.621759Z",
+    "decision": "DISTINCT",
+    "generation": 1,
+    "left": "nodejs.release.22.13.1",
+    "owner": "0xddf754ef6d9c7e7cd5e61deed309045d52465076",
+    "parties": [
+      "0xddf754ef6d9c7e7cd5e61deed309045d52465076"
+    ],
+    "policy_id": "occurrence.v1",
+    "policy_revision": 1,
+    "quarantined": false,
+    "request_id": "public.v7.releases.distinct",
+    "right": "nodejs.release.22.11.0",
+    "scope": "scope:b2006227abca385c18242041e711a531db3ca18d1b2cd481519695e8338fbd74",
+    "source_manifest_digest": "21e0be12331f392d61bde3e0b8642cc22fbf0fc432547970d03c5b9bc40ffad6",
+    "status": "accepted",
+    "subject_digest": "25bc5cb1104bdab6b8258f7e3e94d8a914f3fd1ae19a55793eb913eb99ff0453",
+    "subject_id": "pair:637dd2d686d7972bc4eb6841ab39c728c680e3ec5ed754a25cfe7eaa2d9121b5",
+    "superseded_by": "",
+    "unresolved": false,
+    "vector": {
+      "interval": "DISTINCT",
+      "issuer": "SAME",
+      "occurrence_type": "SAME",
+      "official_reference": "DISTINCT",
+      "place": "SAME"
+    },
+    "witnesses": {
+      "interval": [
+        "nodejs.release.22.11.0.interval",
+        "nodejs.release.22.13.1.interval"
+      ],
+      "issuer": [
+        "nodejs.release.22.11.0.issuer",
+        "nodejs.release.22.13.1.issuer"
+      ],
+      "occurrence_type": [
+        "nodejs.release.22.11.0.occurrence_type",
+        "nodejs.release.22.13.1.occurrence_type"
+      ],
+      "official_reference": [
+        "nodejs.release.22.11.0.official_reference",
+        "nodejs.release.22.13.1.official_reference"
+      ],
+      "place": [
+        "nodejs.release.22.11.0.place",
+        "nodejs.release.22.13.1.place"
+      ]
+    },
+    "directory_ack": {
+      "generation": 1,
+      "request_id": "public.v7.releases.distinct",
+      "status": "finalized"
+    },
+    "consumer_ack": {
+      "fingerprint": "08e46654ecc923019b205b80a68c66c81fd1b2ff3dc3b9005ce143a00f812c5f",
+      "generation": 1,
+      "operation_id": "delivery:1c6e20cd6607528249c0fa0b8ab921f371cc916f4849a86f0bd8525d3e902ae4",
+      "reference_count": 2,
+      "references_digest": "3b2aae11385fb2ba72a47238e9cdc925ef7b3a5fb44d3ec6516da65b7f6d1358",
+      "request_id": "public.v7.releases.distinct",
+      "status": "finalized"
+    }
+  },
+  "incident.stats": {
+    "accepted_count": 1,
+    "capacity": 1000,
+    "held_count": 2,
+    "references": 2
+  },
+  "release.stats": {
+    "accepted_count": 3,
+    "capacity": 1000,
+    "held_count": 4,
+    "references": 4
+  }
+}
