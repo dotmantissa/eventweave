@@ -1,0 +1,28 @@
+{
+  "classification": "actual migrated PostgreSQL journal schema and two controlled unbroadcast intents; no chain write or fabricated email identity",
+  "shared_nonce_preparation": true,
+  "migration_rerun_with_duplicate_drafts": true,
+  "rows": 2,
+  "indexes": [
+    {
+      "indexname": "operation_journal_pkey",
+      "indexdef": "CREATE UNIQUE INDEX operation_journal_pkey ON public.operation_journal USING btree (operation_id)"
+    },
+    {
+      "indexname": "operation_journal_transaction_hash_key",
+      "indexdef": "CREATE UNIQUE INDEX operation_journal_transaction_hash_key ON public.operation_journal USING btree (transaction_hash)"
+    },
+    {
+      "indexname": "operation_journal_user",
+      "indexdef": "CREATE INDEX operation_journal_user ON public.operation_journal USING btree (user_id, created_at DESC)"
+    },
+    {
+      "indexname": "operation_journal_recovery",
+      "indexdef": "CREATE INDEX operation_journal_recovery ON public.operation_journal USING btree (status, updated_at)"
+    },
+    {
+      "indexname": "operation_journal_fair_recovery",
+      "indexdef": "CREATE INDEX operation_journal_fair_recovery ON public.operation_journal USING btree (next_reconcile_at, last_reconciled_at) WHERE (acknowledged = false)"
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 
 > eventweave@0.1.0 lint
-> eslint . && python3 scripts/contracts.py --check
+> eslint . && node scripts/python.mjs scripts/contracts.py --check
 
-{"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"ConsumerDirectory","methods":16,"view_methods":8,"write_methods":8,"ctor_params":2}}
+{"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"ConsumerDirectory","methods":22,"view_methods":13,"write_methods":9,"ctor_params":2}}
 {"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"EventRegistry","methods":11,"view_methods":6,"write_methods":5,"ctor_params":0}}
-{"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"IdentityCourt","methods":10,"view_methods":4,"write_methods":6,"ctor_params":1}}
+{"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"IdentityCourt","methods":11,"view_methods":4,"write_methods":7,"ctor_params":1}}
 {"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"IncidentHistory","methods":9,"view_methods":5,"write_methods":4,"ctor_params":5}}
 {"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"ReleaseEvidence","methods":9,"view_methods":5,"write_methods":4,"ctor_params":5}}
 {"ok":true,"lint":{"ok":true,"passed":3},"validate":{"ok":true,"contract":"RuntimeProbe","methods":1,"view_methods":1,"write_methods":0,"ctor_params":0}}

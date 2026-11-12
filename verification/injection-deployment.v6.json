@@ -1,0 +1,9 @@
+{
+  "signer": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
+  "revision": 6,
+  "classification": "isolated controlled verification deployment",
+  "registry": "0x633F47873364b02D6d4F3A6f58C63cbf4AF4f84B",
+  "court": "0xF3A66896dfAf7481578B6CBaBD51029b2e04c80a",
+  "directory": "0x2F3bf59773f629a0d3277d0952F9DC23a348eAf0",
+  "incident": "0x833380Cb1abC83763B4235509704152997848b65"
+}

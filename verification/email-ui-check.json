@@ -1,7 +1,23 @@
 {
   "url": "https://eventweave.vercel.app",
   "email_form_visible": true,
-  "email_sent": false,
-  "human_authentication_completed": false,
-  "page_errors": []
+  "human_authentication_completed": true,
+  "page_errors": [],
+  "human_authentication_evidence": {
+    "classification": "user-confirmed email sign-in; not independently captured by the automated browser",
+    "reported_on": "2026-11-11",
+    "user_statement": "I just completed an email sign in."
+  },
+  "browser_signing_verified": true,
+  "automated_check": {
+    "email_sent": false,
+    "challenge_completed": false
+  },
+  "browser_signing_evidence": {
+    "classification": "actual human email-authenticated embedded-wallet signed publication; exact worker recovery and finalized consumer acknowledgement",
+    "evidence": "browser-signing.v6.json",
+    "transaction_hash": "0x3364065bc9656e99447c57b9f9682067767e610411f053cbcf5bad79eae40445",
+    "initial_attachment_issue": "Studio numeric nonce zero was dropped by SDK formatter; fixed attachment fetches original RPC transaction",
+    "reported_privy_expiry_error": true
+  }
 }

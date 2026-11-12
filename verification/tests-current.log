@@ -8,30 +8,30 @@
 
 
 > eventweave@0.1.0 test
-> vitest run && python3 -m pytest tests/direct tests/validator -q
+> vitest run && node scripts/python.mjs -m pytest tests/direct tests/validator -q
 
 
  RUN  v4.1.12 /home/dotmantissa/GenLayer/eventweave
 
-{"level":30,"time":1794409205161,"pid":16117,"hostname":"mceesquare","reqId":"req-1","req":{"method":"GET","url":"/api/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205175,"pid":16117,"hostname":"mceesquare","reqId":"req-1","res":{"statusCode":200},"responseTime":11.210699000000204,"msg":"request completed"}
-{"level":30,"time":1794409205179,"pid":16117,"hostname":"mceesquare","reqId":"req-2","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205192,"pid":16117,"hostname":"mceesquare","reqId":"req-2","res":{"statusCode":401},"responseTime":12.663900000000012,"msg":"request completed"}
-{"level":30,"time":1794409205193,"pid":16117,"hostname":"mceesquare","reqId":"req-3","req":{"method":"POST","url":"/api/comparisons/prepare","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205198,"pid":16117,"hostname":"mceesquare","reqId":"req-3","res":{"statusCode":401},"responseTime":4.463000000000193,"msg":"request completed"}
-{"level":30,"time":1794409205199,"pid":16117,"hostname":"mceesquare","reqId":"req-4","req":{"method":"POST","url":"/api/challenges","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205202,"pid":16117,"hostname":"mceesquare","reqId":"req-4","res":{"statusCode":401},"responseTime":2.5091999999999643,"msg":"request completed"}
-{"level":30,"time":1794409205206,"pid":16117,"hostname":"mceesquare","reqId":"req-5","req":{"method":"GET","url":"/api/dockets/invalid%20id","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205212,"pid":16117,"hostname":"mceesquare","reqId":"req-5","res":{"statusCode":400},"responseTime":4.999398999999812,"msg":"request completed"}
-{"level":30,"time":1794409205215,"pid":16117,"hostname":"mceesquare","reqId":"req-6","req":{"method":"GET","url":"/api/reconcile","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205216,"pid":16117,"hostname":"mceesquare","reqId":"req-6","res":{"statusCode":401},"responseTime":1.424199999999928,"msg":"request completed"}
-{"level":30,"time":1794409205218,"pid":16117,"hostname":"mceesquare","reqId":"req-7","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
-{"level":30,"time":1794409205219,"pid":16117,"hostname":"mceesquare","reqId":"req-7","res":{"statusCode":413},"responseTime":1.1507000000001426,"msg":"request completed"}
+{"level":30,"time":1794472941831,"pid":52950,"hostname":"mceesquare","reqId":"req-1","req":{"method":"GET","url":"/api/health","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941841,"pid":52950,"hostname":"mceesquare","reqId":"req-1","res":{"statusCode":200},"responseTime":7.651499999999942,"msg":"request completed"}
+{"level":30,"time":1794472941843,"pid":52950,"hostname":"mceesquare","reqId":"req-2","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941847,"pid":52950,"hostname":"mceesquare","reqId":"req-2","res":{"statusCode":401},"responseTime":3.3456999999998516,"msg":"request completed"}
+{"level":30,"time":1794472941847,"pid":52950,"hostname":"mceesquare","reqId":"req-3","req":{"method":"POST","url":"/api/comparisons/prepare","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941849,"pid":52950,"hostname":"mceesquare","reqId":"req-3","res":{"statusCode":401},"responseTime":1.699500000000171,"msg":"request completed"}
+{"level":30,"time":1794472941850,"pid":52950,"hostname":"mceesquare","reqId":"req-4","req":{"method":"POST","url":"/api/challenges","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941852,"pid":52950,"hostname":"mceesquare","reqId":"req-4","res":{"statusCode":401},"responseTime":1.4018000000000939,"msg":"request completed"}
+{"level":30,"time":1794472941853,"pid":52950,"hostname":"mceesquare","reqId":"req-5","req":{"method":"GET","url":"/api/dockets/invalid%20id","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941855,"pid":52950,"hostname":"mceesquare","reqId":"req-5","res":{"statusCode":400},"responseTime":1.7496000000001004,"msg":"request completed"}
+{"level":30,"time":1794472941856,"pid":52950,"hostname":"mceesquare","reqId":"req-6","req":{"method":"GET","url":"/api/reconcile","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941857,"pid":52950,"hostname":"mceesquare","reqId":"req-6","res":{"statusCode":401},"responseTime":1.1265000000003056,"msg":"request completed"}
+{"level":30,"time":1794472941858,"pid":52950,"hostname":"mceesquare","reqId":"req-7","req":{"method":"POST","url":"/api/sources/commit","host":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1794472941859,"pid":52950,"hostname":"mceesquare","reqId":"req-7","res":{"statusCode":413},"responseTime":0.6059999999997672,"msg":"request completed"}
 
- Test Files  2 passed (2)
-      Tests  27 passed (27)
-   Start at  16:00:02
-   Duration  3.25s (transform 576ms, setup 0ms, import 4.22s, tests 636ms, environment 0ms)
+ Test Files  8 passed (8)
+      Tests  49 passed (49)
+   Start at  09:42:19
+   Duration  2.74s (transform 1.58s, setup 0ms, import 9.27s, tests 522ms, environment 5ms)
 
 INFO: File `gltest.config.yaml` found in the current directory, using it
 INFO: Clearing artifacts directory: artifacts
@@ -47,5 +47,5 @@ INFO:   Environment: .env
 INFO:   Default wait interval: 3000 ms
 INFO:   Default wait retries: 50
 INFO:   Leader only mode: False
-.............................                                            [100%]
-29 passed in 8.31s
+....................................................                     [100%]
+52 passed in 17.95s

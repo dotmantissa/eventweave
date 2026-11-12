@@ -1,12 +1,10 @@
 {
-  "production_url": "https://eventweave.vercel.app",
-  "status": "ok",
-  "deployment": {
-    "id": "dpl_CdpcAHeeBrwi1ivTSAsN2azuddjZ",
-    "url": "https://eventweave-e17ldg044-mantissas-projects.vercel.app",
-    "readyState": "READY",
-    "target": "production",
-    "deploymentApiUrl": "https://api.vercel.com/v13/deployments/dpl_CdpcAHeeBrwi1ivTSAsN2azuddjZ"
-  },
-  "message": "Deployment eventweave-e17ldg044-mantissas-projects.vercel.app ready. Production URL: https://eventweave.vercel.app"
+  "deployment_id": "dpl_4mkWd3rmav4XnmSwtTiPRosrGqjF",
+  "url": "https://eventweave.vercel.app",
+  "ready_state": "READY",
+  "contract_revision": 6,
+  "application_source_commit": "80dacb466befca569c537c8bb31b1e153c330c43",
+  "contract_source_commit": "f4727eaf09afc615000657074473389ef9c1138d",
+  "node_version": "22.x",
+  "first_wallet_raw_attachment_fix": true
 }

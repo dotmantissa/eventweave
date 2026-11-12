@@ -1,0 +1,69 @@
+{
+  "classification": "compiled UI route/viewport smoke with controlled empty API responses; no email challenge or signing is fabricated",
+  "results": [
+    {
+      "width": 390,
+      "route": "/",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nSign in\nNames change.\nHistory shouldn’t.\n\nA release gets renamed. An incident gets reported twice. Keep the evidence connected, without losing the plot.\n\nSearch\nPublic records. Shared identities. Every source keeps its credit.\nA little context\nSame occurrence\nDifferent reports, one identity.\nDistinct events\nA familiar name can hide a new incident.\nRoom for uncertainty\nNo evidence, no forced answer.\nMeet the registry\nThe public record\n\nFind the occurrence behind the headline.\n\nRegister an event\nAll events\nReleases\nSecurity\nOperations\nThe registry is ready for its first record.\n\nRegister a public release, disclosed incident or official notice. Nothing here is filled with pretend history.\n\nA shared identity. Your own rules.\n\nEventWeave connects records. Your application decides what happens next.\n\nSee the integrations\nA history worth keeping.\nHow it works\nYour activity\nSource code\nStudio connection unavailable",
+      "heading": "Names change.History shouldn’t."
+    },
+    {
+      "width": 390,
+      "route": "/challenges",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nSign in\nHistory can be corrected.\n\nWhen a merge gets it wrong, challenge the relation. Keep the records. Change what they’re allowed to share.\n\nRelation request ID\nInspect relation\nSame event\na / b\n\nGeneration 1. \nSuperseded\n\nControlling rules\nALL_ATTRIBUTES\nSuperseded by\ncorrection\nApply a correction\n\nA newer, delivered SAME or DISTINCT certificate must cover the same subject and consumer bindings.\n\nSuccessor request ID\nWhat did the original decision miss?\nSupersede relation\nRestore corrected identities\n\nFor a DISTINCT correction, wait for every invalidation acknowledgement, then recover the affected cluster. Recovery restores every affected reference using a complete partition proof. For clusters larger than two records, assess and deliver every pair again: SAME within each occurrence and DISTINCT between occurrences. For a SAME correction, submit a fresh complete merge proof and deliver its notice.\n\nAdditional recovery relation IDs\nRecover corrected cluste",
+      "heading": "History can be corrected."
+    },
+    {
+      "width": 390,
+      "route": "/activity",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nSign in\nFollow the thread.\n\nSigned requests, network decisions and delivery acknowledgements. Pending is progress, not permission.\n\nRefresh\nYour activity is yours.\n\nSign in with email\n\nA history worth keeping.\nHow it works\nYour activity\nSource code\nStudio connection unavailable",
+      "heading": "Follow the thread."
+    },
+    {
+      "width": 390,
+      "route": "/workspace",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nSign in\nUntangle the reports.\n\nPut two records side by side. Names are clues. Evidence gets the last word.\n\nFirst record\nChoose a public record\nSelect an occurrence\n\nA record belongs here.\nChoose one above to see its discriminators.\n\nCandidate record\nChoose a public record\nSelect an occurrence\n\nA record belongs here.\nChoose one above to see its discriminators.\n\nEvidence consumer\nRelease Evidence\nIncident History\n\nFive mandatory attributes. Independent validator review.\n\nRequest comparison\nPick up a comparison\n\nOpen a docket, check its decision, then carry the identity into an application.\n\nComparison request ID\nRead docket\nOne useful answer is “we don’t know.”\n\nMissing facts remain unknown. A shared root cause does not make two incidents the same. Larger merges need a complete proof for every pair, with at most six records.\n\nA history worth keeping.\nHow it works\nYour activity\nSource code\nStudio connection unavailable",
+      "heading": "Untangle the reports."
+    },
+    {
+      "width": 1440,
+      "route": "/",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nRegistry\nCompare\nChallenges\nApplications\nSign in\nNames change.\nHistory shouldn’t.\n\nA release gets renamed. An incident gets reported twice.\nKeep the evidence connected, without losing the plot.\n\nSearch\nPublic records. Shared identities. Every source keeps its credit.\nA little context\n\nSame story?\nLet the evidence say.\n\nSame occurrence\nDifferent reports, one identity.\nDistinct events\nA familiar name can hide a new incident.\nRoom for uncertainty\nNo evidence, no forced answer.\nMeet the registry\nThe public record\n\nFind the occurrence behind the headline.\n\nRegister an event\nAll events\nReleases\nSecurity\nOperations\nundefined records\nThe registry is ready for its first record.\n\nRegister a public release, disclosed incident or official notice. Nothing here is filled with pretend history.\n\nA shared identity. Your own rules.\n\nEventWeave connects records. Your application decides what happens next.\n\nSee the integrations\nA history worth keeping.\nHow it works\nYour activity",
+      "heading": "Names change.History shouldn’t."
+    },
+    {
+      "width": 1440,
+      "route": "/challenges",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nRegistry\nCompare\nChallenges\nApplications\nSign in\nHistory can be corrected.\n\nWhen a merge gets it wrong, challenge the relation. Keep the records. Change what they’re allowed to share.\n\nRelation request ID\nInspect relation\nSame event\na / b\n\nGeneration 1. \nSuperseded\n\nControlling rules\nALL_ATTRIBUTES\nSuperseded by\ncorrection\nApply a correction\n\nA newer, delivered SAME or DISTINCT certificate must cover the same subject and consumer bindings.\n\nSuccessor request ID\nWhat did the original decision miss?\nSupersede relation\nRestore corrected identities\n\nFor a DISTINCT correction, wait for every invalidation acknowledgement, then recover the affected cluster. Recovery restores every affected reference using a complete partition proof. For clusters larger than two records, assess and deliver every pair again: SAME within each occurrence and DISTINCT between occurrences. For a SAME correction, submit a fresh complete merge proof and deliver its notice.\n\nAdditional recov",
+      "heading": "History can be corrected."
+    },
+    {
+      "width": 1440,
+      "route": "/activity",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nRegistry\nCompare\nChallenges\nApplications\nSign in\nFollow the thread.\n\nSigned requests, network decisions and delivery acknowledgements. Pending is progress, not permission.\n\nRefresh\nYour activity is yours.\n\nSign in with email\n\nA history worth keeping.\nHow it works\nYour activity\nSource code\nStudio connection unavailable",
+      "heading": "Follow the thread."
+    },
+    {
+      "width": 1440,
+      "route": "/workspace",
+      "overflow": false,
+      "page_errors": [],
+      "body": "Skip to content\nEventWeave\nRegistry\nCompare\nChallenges\nApplications\nSign in\nUntangle the reports.\n\nPut two records side by side. Names are clues. Evidence gets the last word.\n\nFirst record\nChoose a public record\nSelect an occurrence\n\nA record belongs here.\nChoose one above to see its discriminators.\n\nCandidate record\nChoose a public record\nSelect an occurrence\n\nA record belongs here.\nChoose one above to see its discriminators.\n\nEvidence consumer\nRelease Evidence\nIncident History\n\nFive mandatory attributes. Independent validator review.\n\nRequest comparison\nPick up a comparison\n\nOpen a docket, check its decision, then carry the identity into an application.\n\nComparison request ID\nRead docket\nOne useful answer is “we don’t know.”\n\nMissing facts remain unknown. A shared root cause does not make two incidents the same. Larger merges need a complete proof for every pair, with at most six records.\n\nA history worth keeping.\nHow it works\nYour activity\nSource code\nStudio connection unavailable",
+      "heading": "Untangle the reports."
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "network": "studionet",
+  "chain_id": 61999,
+  "revision": 4,
+  "signer": "0xBC1399c55538eC034d4Da550C03c34Ae0C357f53",
+  "incident_owner": "0x27BF060c65e14796E9b079Ac0C84DB78d8318cb3",
+  "release_owner": "0xDDF754eF6D9c7e7Cd5E61dEeD309045d52465076",
+  "registry": "0xABa89A93EF075f9845975515cf434b7aF1E8b36E",
+  "court": "0xdAc69B90E341BB26BE48089b1Bd41e073094e28f",
+  "directory": "0x5367557F967F56877b38DDaBEd5BE2D36E280412",
+  "incident": "0x41CCfeE122B1D184273FEaA66bf4A6AC69e2A139",
+  "release": "0xa21cfB7Bc7572398D2d8b16C55897d0D7CA5eBF2"
+}

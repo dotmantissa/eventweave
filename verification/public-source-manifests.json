@@ -5,7 +5,7 @@
     "authority_id": "nodejs.public",
     "principal": "0xbc1399c55538ec034d4da550c03c34ae0c357f53",
     "channel": "official.website",
-    "url_prefix": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/",
+    "url_prefix": "https://raw.githubusercontent.com/nodejs/nodejs.org/",
     "evidence_url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/README.md",
     "evidence_hash": "682b764bf252f0ace8429f7538ff3787ab481d4eeac2192071517b11b3862fb5",
     "evidence_bytes": 6453,
@@ -28,46 +28,46 @@
         "record_id": "nodejs.notice.jan2025",
         "authority_id": "nodejs.public:1",
         "channel": "official.website",
-        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
-        "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a",
-        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/5f194a11346275b1187ef66ec4d2c230e587f328/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
+        "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6",
+        "revision": "5f194a11346275b1187ef66ec4d2c230e587f328",
         "scope": "public.occurrence",
-        "byte_length": 4921,
+        "byte_length": 4388,
         "spans": [
           {
             "span_id": "nodejs.notice.jan2025.issuer",
             "attribute": "issuer",
             "start": 0,
-            "end": 4921,
-            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+            "end": 4388,
+            "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6"
           },
           {
             "span_id": "nodejs.notice.jan2025.place",
             "attribute": "place",
             "start": 0,
-            "end": 4921,
-            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+            "end": 4388,
+            "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6"
           },
           {
             "span_id": "nodejs.notice.jan2025.interval",
             "attribute": "interval",
             "start": 0,
-            "end": 4921,
-            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+            "end": 4388,
+            "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6"
           },
           {
             "span_id": "nodejs.notice.jan2025.occurrence_type",
             "attribute": "occurrence_type",
             "start": 0,
-            "end": 4921,
-            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+            "end": 4388,
+            "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6"
           },
           {
             "span_id": "nodejs.notice.jan2025.official_reference",
             "attribute": "official_reference",
             "start": 0,
-            "end": 4921,
-            "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a"
+            "end": 4388,
+            "raw_hash": "fe11759aac5fc3f6e68f88b115c63cd53b5a88a946882973c8854418751c92f6"
           }
         ]
       }
@@ -87,9 +87,9 @@
         "record_id": "nodejs.notice.jan2025.amended",
         "authority_id": "nodejs.public:1",
         "channel": "official.website",
-        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/c09d4686360dd88cd41fd048b0e9ebd9045c3d5a/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
+        "url": "https://raw.githubusercontent.com/nodejs/nodejs.org/642c2c232041b06d5bfb9ee65c90b83e4c79bc47/apps/site/pages/en/blog/vulnerability/january-2025-security-releases.md",
         "raw_hash": "e56509afc699d47e853f753ff99f60905a543af518109821e530d31303d7458a",
-        "revision": "c09d4686360dd88cd41fd048b0e9ebd9045c3d5a",
+        "revision": "642c2c232041b06d5bfb9ee65c90b83e4c79bc47",
         "scope": "public.occurrence",
         "byte_length": 4921,
         "spans": [

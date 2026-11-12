@@ -1,0 +1,12 @@
+{
+  "classification": "actual user email-authenticated embedded-wallet browser signing; numeric zero nonce attachment recovered by exact worker matching",
+  "revision": 6,
+  "operation": {
+    "operation_id": "b64e4f78-e10c-4470-9eab-6880c2376bd2",
+    "transaction_hash": "0x3364065bc9656e99447c57b9f9682067767e610411f053cbcf5bad79eae40445",
+    "status": "finalized",
+    "acknowledged": true,
+    "error": null
+  },
+  "original_raw_attachment_verified": true
+}
