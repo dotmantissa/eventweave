@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   rows: [] as Record<string, unknown>[],
   visited: [] as string[],
   nonce: 7,
+  transaction: null as Record<string, unknown> | null,
   deployment: {
     registry: "0x1111111111111111111111111111111111111111",
     court: "0x1111111111111111111111111111111111111111",
@@ -86,19 +87,71 @@ vi.mock("../apps/api/src/chain.js", () => ({
   read: vi.fn(),
   chain: () => ({
     getCurrentNonce: async () => state.nonce,
-    request: async ({ params }: { params: string[] }) => {
+    request: async ({
+      method,
+      params,
+    }: {
+      method: string;
+      params: string[];
+    }) => {
+      if (method === "eth_getTransactionByHash") return state.transaction;
       state.visited.push(params[0]);
       return [];
     },
   }),
 }));
 vi.mock("../apps/api/src/indexer.js", () => ({ rebuildIndex: async () => 0 }));
-import { prepareOperation } from "../apps/api/src/operations";
+import { attachBroadcast, prepareOperation } from "../apps/api/src/operations";
 import { reconcile } from "../apps/api/src/worker";
 beforeEach(() => {
   state.rows = [];
   state.visited = [];
   state.nonce = 7;
+  state.transaction = null;
+});
+it("attaches a first wallet transaction without dropping Studio's numeric zero nonce", async () => {
+  const signer = "0x3333333333333333333333333333333333333333";
+  const address = state.deployment.directory;
+  const args = ["public.v6.notice.renamed.incident"];
+  state.rows = [
+    {
+      operation_id: "first-wallet-broadcast",
+      user_id: "user",
+      signer,
+      nonce: 0,
+      contract: "directory",
+      contract_address: address,
+      payload_digest: createHash("sha256")
+        .update(canonical({ address, method: "publish_alias", args }))
+        .digest("hex"),
+    },
+  ];
+  state.transaction = {
+    from_address: signer,
+    to_address: address,
+    nonce: 0,
+    data: {
+      calldata:
+        "FgRhcmdzDYwCcHVibGljLnY2Lm5vdGljZS5yZW5hbWVkLmluY2lkZW50Bm1ldGhvZGxwdWJsaXNoX2FsaWFz",
+    },
+    status: "FINALIZED",
+    result_name: "MAJORITY_AGREE",
+    consensus_data: { leader_receipt: [{ execution_result: "SUCCESS" }] },
+  };
+  await expect(
+    attachBroadcast("first-wallet-broadcast", "0x1234", { user_id: "user" }),
+  ).resolves.toEqual({
+    operation_id: "first-wallet-broadcast",
+    status: "finalized",
+  });
+  state.transaction.nonce = 1;
+  await expect(
+    attachBroadcast("first-wallet-broadcast", "0x1234", { user_id: "user" }),
+  ).rejects.toThrow("does not match");
+  delete state.transaction.nonce;
+  await expect(
+    attachBroadcast("first-wallet-broadcast", "0x1234", { user_id: "user" }),
+  ).rejects.toThrow("does not match");
 });
 it("prebroadcast failures leave the nonce available for a different intent", async () => {
   const auth = {

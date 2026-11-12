@@ -278,9 +278,12 @@ export async function attachBroadcast(
     operation.transaction_hash !== transactionHash
   )
     throw new HttpError(409, "A different broadcast is already recorded.");
-  const transaction = (await chain().getTransaction({
-    hash: transactionHash as import("genlayer-js/types").TransactionHash,
-  })) as unknown as Record<string, unknown>;
+  // Studio returns numeric nonces. The SDK's Ethereum formatter drops numeric
+  // zero, so match the original RPC transaction before any formatting occurs.
+  const transaction = (await chain().request({
+    method: "eth_getTransactionByHash",
+    params: [transactionHash],
+  })) as Record<string, unknown>;
   const address =
     operation.contract_address ||
     requireDeployment()[operation.contract as "registry"];
